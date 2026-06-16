@@ -1,0 +1,19 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=12a65881_002Decc5_002D41b2_002Da060_002D91cacbe3f400/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="LoginUser_ShouldThrowUnauthorizedException_WhenUserNotFound" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Or&gt;&#xD;
+    &lt;TestAncestor&gt;&#xD;
+      &lt;TestId&gt;xUnit::C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0::net10.0::ComplaintManagementSystem.Tests.Services.AuthServiceTests.LoginUser_ShouldThrowUnauthorizedException_WhenUserNotFound&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;xUnit::C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0::net10.0::ComplaintManagementSystem.Tests.Services.AuthServiceTests.LoginUser_ShouldThrowUnAuthorizedException_WhenPasswordNotFound&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;xUnit::C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0::net10.0::ComplaintManagementSystem.Tests.Services.AuthServiceTests.LoginUser_ShouldReturnToken_WhenCredentialsAreValid&lt;/TestId&gt;&#xD;
+    &lt;/TestAncestor&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:ComplaintServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:DashboardServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:EmployeeServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:EscalationServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:CommentServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:CurrentUserServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:FileStorageServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0/d:Services/f:TokenServiceTests.cs&lt;/ProjectFile&gt;&#xD;
+  &lt;/Or&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	</wpf:ResourceDictionary>
