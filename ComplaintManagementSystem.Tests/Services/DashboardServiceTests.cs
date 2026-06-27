@@ -203,7 +203,7 @@ public class DashboardServiceTests
             .Setup(x => x.GetEmployeeId())
             .Returns(1);
 
-        _complaintRepositoryMock
+        _dashboardRepositoryMock
             .Setup(x => x.GetEmployeeDashboardAsync(1))
             .ReturnsAsync(dashboard);
 

@@ -1,4 +1,5 @@
 ﻿
+using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
@@ -6,6 +7,7 @@ using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
 using ComplaintManagementSystem.Services;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -25,6 +27,7 @@ public class ComplaintServiceTests
     private readonly Mock<IEmployeeRepository> _employeeRepositoryMock;
     private readonly Mock<IEscalationRepository> _escalationRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly ComplaintManagementSystemContext _context;
 
     private readonly ComplaintService _service;
 
@@ -42,6 +45,12 @@ public class ComplaintServiceTests
         _escalationRepositoryMock = new();
         _userRepositoryMock = new();
 
+        var options = new DbContextOptionsBuilder<ComplaintManagementSystemContext>()
+            .UseInMemoryDatabase(databaseName: $"ComplaintTestDb_{Guid.NewGuid()}")
+            .Options;
+
+        _context = new ComplaintManagementSystemContext(options);
+
         _service = new ComplaintService(
             _complaintRepositoryMock.Object,
             _categoryRepositoryMock.Object,
@@ -53,7 +62,8 @@ public class ComplaintServiceTests
             _slaRepositoryMock.Object,
             _employeeRepositoryMock.Object,
             _escalationRepositoryMock.Object,
-            _userRepositoryMock.Object);
+            _userRepositoryMock.Object,
+            _context);
     }
 
     [Fact]

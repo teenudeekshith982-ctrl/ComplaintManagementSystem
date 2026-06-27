@@ -1,9 +1,11 @@
-﻿using ComplaintManagementSystem.Exceptions;
+﻿using ComplaintManagementSystem.Contexts;
+using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
 using ComplaintManagementSystem.Services;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -15,6 +17,7 @@ public class CommentServiceTests
     private readonly Mock<ICommentRepository> _commentRepositoryMock;
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
     private readonly Mock<IComplaintRepository> _complaintRepositoryMock;
+    private readonly ComplaintManagementSystemContext _context;
 
     private readonly CommentService _service;
 
@@ -25,11 +28,18 @@ public class CommentServiceTests
         _currentUserServiceMock = new Mock<ICurrentUserService>();
         _complaintRepositoryMock = new Mock<IComplaintRepository>();
 
+        var options = new DbContextOptionsBuilder<ComplaintManagementSystemContext>()
+            .UseInMemoryDatabase(databaseName: $"CommentTestDb_{Guid.NewGuid()}")
+            .Options;
+
+        _context = new ComplaintManagementSystemContext(options);
+
         _service = new CommentService(
             _loggerMock.Object,
             _commentRepositoryMock.Object,
             _currentUserServiceMock.Object,
-            _complaintRepositoryMock.Object);
+            _complaintRepositoryMock.Object,
+            _context);
     }
 
     [Fact]

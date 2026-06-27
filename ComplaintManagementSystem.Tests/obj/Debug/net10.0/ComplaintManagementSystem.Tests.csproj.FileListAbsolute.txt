@@ -336,3 +336,13 @@ D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\obj\Debug\net10.0\r
 D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\obj\Debug\net10.0\ComplaintManagementSystem.Tests.pdb
 D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\obj\Debug\net10.0\ComplaintManagementSystem.Tests.genruntimeconfig.cache
 D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\obj\Debug\net10.0\ref\ComplaintManagementSystem.Tests.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\obj\Debug\net10.0\ComplaintManagementSystem.Tests.sourcelink.json
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.InMemory.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Caching.Abstractions.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Caching.Memory.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.DependencyInjection.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Logging.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Options.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Primitives.dll

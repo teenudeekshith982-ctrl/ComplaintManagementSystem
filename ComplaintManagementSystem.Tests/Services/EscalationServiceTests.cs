@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
@@ -6,6 +7,7 @@ using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
 using ComplaintManagementSystem.Services;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -20,11 +22,18 @@ public class EscalationServiceTests
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<ILogger<EscalationService>> _loggerMock = new();
     private readonly Mock<ICurrentUserService> _currentUserServiceMock = new();
+    private readonly ComplaintManagementSystemContext _context;
 
     private readonly EscalationService _service;
 
     public EscalationServiceTests()
     {
+        var options = new DbContextOptionsBuilder<ComplaintManagementSystemContext>()
+            .UseInMemoryDatabase(databaseName: $"EscalationTestDb_{Guid.NewGuid()}")
+            .Options;
+
+        _context = new ComplaintManagementSystemContext(options);
+
         _service = new EscalationService(
             _escalationRepositoryMock.Object,
             _complaintRepositoryMock.Object,
@@ -32,7 +41,8 @@ public class EscalationServiceTests
             _mapperMock.Object,
             _loggerMock.Object,
             _currentUserServiceMock.Object,
-            _employeeRepositoryMock.Object);
+            _employeeRepositoryMock.Object,
+            _context);
     }
 
     [Fact]
