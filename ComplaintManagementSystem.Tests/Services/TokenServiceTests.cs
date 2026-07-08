@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Interfaces;
@@ -93,19 +93,19 @@ public class TokenServiceTests
         // Assert
 
         jwt.Claims
-            .First(x => x.Type == ClaimTypes.NameIdentifier)
+            .First(x => x.Type == "sub")
             .Value
             .Should()
             .Be("1");
 
         jwt.Claims
-            .First(x => x.Type == ClaimTypes.Name)
+            .First(x => x.Type == "name")
             .Value
             .Should()
             .Be("Teenu");
 
         jwt.Claims
-            .First(x => x.Type == ClaimTypes.Role)
+            .First(x => x.Type == "role")
             .Value
             .Should()
             .Be("User");

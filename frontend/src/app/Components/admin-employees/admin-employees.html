@@ -1,0 +1,84 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="page-header animate-fade">
+      <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
+      <div class="title-action-row">
+        <h2>User Account Management</h2>
+        <button class="btn btn-primary" (click)="newEmployee()">+ Add Technician Employee</button>
+      </div>
+    </div>
+
+    <!-- Spinner Loader -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+
+    <!-- Table output -->
+    <div *ngIf="!loading() && !error()">
+      <div class="table-wrapper" *ngIf="userList().length > 0; else emptyState">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of userList()">
+              <td class="font-weight-bold">{{ u.name }}</td>
+              <td class="text-secondary">{{ u.email }}</td>
+              <td class="text-secondary">{{ u.phone }}</td>
+              <td>
+                <span class="role-badge" [ngClass]="{
+                  'admin-role': u.role === 'Admin',
+                  'emp-role': u.role === 'Employee',
+                  'user-role': u.role === 'User'
+                }">{{ u.role }}</span>
+              </td>
+              <td>
+                <span class="status-indicator" [ngClass]="u.isActive ? 'status-active' : 'status-inactive'">
+                  {{ u.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-action-toggle" 
+                        [ngClass]="u.isActive ? 'btn-deactivate' : 'btn-activate'"
+                        (click)="toggleActive(u.userId, u.isActive)">
+                  {{ u.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="card text-center padding-xl animate-fade">
+          <p class="empty-text">No user accounts found in the system.</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-footer" *ngIf="totalRecords() > 0">
+        <span class="records-info">Showing page {{ pageNumber() }} of {{ totalPages() }} ({{ totalRecords() }} accounts in total)</span>
+        <div class="pagination-buttons">
+          <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() <= 1" (click)="prevPage()">Previous</button>
+          <span class="current-page">{{ pageNumber() }}</span>
+          <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() >= totalPages()" (click)="nextPage()">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

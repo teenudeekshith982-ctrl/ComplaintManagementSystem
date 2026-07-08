@@ -1,48 +1,53 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../Services/auth.service';
+import { ToastService } from '../../Services/toast.service';
 import { FormsModule } from '@angular/forms';
+import { NgIf, NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-register',
-  imports: [RouterLink,FormsModule],
+  imports: [RouterLink, FormsModule, NgIf, NgClass],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
 export class Register {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private toastService = inject(ToastService);
 
-  fullName : string = '';
-  email : string = '';
-  phone : string = '';
-  password : string = '';
+  fullName = '';
+  email = '';
+  phone = '';
+  password = '';
   isloading = signal(false);
-  
-  
-  constructor(private authService: AuthService,private router : Router){
-    this.isloading = this.authService.isLoading;
 
-  }
+  Register() {
+    if (!this.fullName || !this.email || !this.phone || !this.password) return;
 
-  Register(){
     const credentials = {
-      name : this.fullName,
-      email : this.email,
-      phone : this.phone,
-      password : this.password
-    }
+      name: this.fullName,
+      email: this.email,
+      phone: this.phone,
+      password: this.password
+    };
+    
     this.isloading.set(true);
+
     this.authService.Register(credentials).subscribe({
-      next:(response)=>{
-        console.log('Registration successful:', response);
+      next: (response) => {
         this.isloading.set(false);
-        this.router.navigate(['/login']);
+        this.toastService.success('Registration successful! Redirecting to login...');
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 1500);
       },
-      error:(error)=>{
-        console.error('Registration failed:', error);
+      error: (error: any) => {
+        console.error('Registration failed', error);
         this.isloading.set(false);
+        const msg = error.error?.message || 'Registration failed. Please verify your details and try again.';
+        this.toastService.error(msg);
       }
-
-    })
+    });
   }
-
 }

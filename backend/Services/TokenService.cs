@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ComplaintManagementSystem.Enums;
@@ -28,15 +28,15 @@ public class TokenService : ITokenService
         var claims = new List<Claim>
         {
             new Claim(
-                ClaimTypes.NameIdentifier,
+                "sub",
                 user.UserId.ToString()),
 
             new Claim(
-                ClaimTypes.Name,
+                "name",
                 user.Name),
 
             new Claim(
-                ClaimTypes.Role,
+                "role",
                 user.Role)
         };
 
@@ -61,7 +61,7 @@ public class TokenService : ITokenService
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: credentials);
         _logger.LogInformation("Token Created For User {Email}", user.Email);
         return new JwtSecurityTokenHandler()

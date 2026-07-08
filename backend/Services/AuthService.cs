@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
@@ -71,7 +71,7 @@ public class AuthService : IAuthService
         if (user == null)
         {   
             _logger.LogWarning($"User with email {request.Email} does not exist");
-            throw new NotFoundException($"User with Given {request.Email} does not exist");
+            throw new UnauthorizedAccessException("Invalid credentials.Please Check Your Email and Password.");
         }
 
         var isPasswordValid =

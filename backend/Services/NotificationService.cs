@@ -3,6 +3,9 @@ using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
 
+using ComplaintManagementSystem.Hubs;
+using Microsoft.AspNetCore.SignalR;
+
 namespace ComplaintManagementSystem.Services;
 
 public class NotificationService : INotificationService
@@ -10,15 +13,18 @@ public class NotificationService : INotificationService
     private readonly INotificationRepository _notificationRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<NotificationService> _logger;
+    private readonly IHubContext<NotificationHub> _hubContext;
 
     public NotificationService(
         INotificationRepository notificationRepository,
         ICurrentUserService currentUserService,
-        ILogger<NotificationService> logger)
+        ILogger<NotificationService> logger,
+        IHubContext<NotificationHub> hubContext)
     {
         _notificationRepository = notificationRepository;
         _currentUserService = currentUserService;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     public async Task<(List<NotificationDto> Notifications, int TotalCount, int UnreadCount)> GetMyNotificationsAsync(int pageNumber, int pageSize)
@@ -96,5 +102,21 @@ public class NotificationService : INotificationService
 
         await _notificationRepository.AddAsync(notification);
         _logger.LogInformation("Notification created for user {UserId}: {Message}", userId, message);
+
+        try
+        {
+            await _hubContext.Clients.Group($"User_{userId}").SendAsync("ReceiveNotification", new
+            {
+                notificationId = notification.NotificationId,
+                message = notification.Message,
+                isRead = false,
+                createdAt = notification.CreatedAt,
+                relatedComplaintId = notification.RelatedComplaintId
+            });
+        }
+        catch (System.Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send real-time notification to user {UserId}", userId);
+        }
     }
 }

@@ -1,93 +1,54 @@
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-}
-
 .login-container {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f4f6f9;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-base);
+  padding: 1.5rem;
+  background-image: radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
 }
 
 .login-card {
-    width: 380px;
-    background: white;
-    padding: 35px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  max-width: 440px;
+  width: 100%;
 }
 
 .login-card h2 {
-    text-align: center;
-    color: #1e3a8a;
-    margin-bottom: 5px;
+  font-family: var(--font-title);
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #fff, var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.login-card p {
-    text-align: center;
-    color: gray;
-    margin-bottom: 25px;
-}
-
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 11px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #2563eb;
-}
-
-button {
-    width: 100%;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #1d4ed8;
-}
-
-button {
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+.subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
 }
 
 .footer {
-    text-align: center;
-    margin-top: 20px;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
-.footer a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
+.link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.link:hover {
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+  color: #fff;
 }

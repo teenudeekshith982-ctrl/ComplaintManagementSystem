@@ -1,0 +1,129 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container animate-fade">
+    <!-- Welcome Header Banner -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2>Welcome back, {{ userName() }}</h2>
+        <p>Manage and track your active support requests</p>
+      </div>
+      <button class="btn btn-primary" (click)="newComplaint()">+ File New Complaint</button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="!loading()">
+      <!-- Stats Cards Row -->
+      <div class="stats-grid">
+        <div class="stat-card card">
+          <div class="stat-icon icon-total">&#128203;</div>
+          <div class="stat-info">
+            <h3>Total Filed</h3>
+            <span class="stat-value">{{ totalComplaints() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-open">&#128198;</div>
+          <div class="stat-info">
+            <h3>Open</h3>
+            <span class="stat-value text-info">{{ openComplaints() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-assigned">&#128393;</div>
+          <div class="stat-info">
+            <h3>Assigned</h3>
+            <span class="stat-value text-purple">{{ assignedComplaints() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-progress">&#128295;</div>
+          <div class="stat-info">
+            <h3>In Progress</h3>
+            <span class="stat-value text-warning">{{ inProgressComplaints() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-resolved">&#9989;</div>
+          <div class="stat-info">
+            <h3>Resolved</h3>
+            <span class="stat-value text-success">{{ resolvedComplaints() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-closed">&#128274;</div>
+          <div class="stat-info">
+            <h3>Closed</h3>
+            <span class="stat-value text-muted">{{ closedComplaints() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Grid split -->
+      <div class="content-row">
+        <!-- Recent Complaints Table -->
+        <div class="card recent-section">
+          <div class="section-header">
+            <h3>Recent Complaints</h3>
+            <button class="btn btn-secondary btn-sm" (click)="viewAllComplaints()">View All &rarr;</button>
+          </div>
+          
+          <div class="table-wrapper" *ngIf="recentComplaints().length > 0; else noRecent">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Date Filed</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of recentComplaints()" (click)="viewDetails(c.complaintId)">
+                  <td class="font-weight-bold">{{ c.title }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="statusClass(c.status)">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                  <td class="text-secondary">{{ c.createdAt | date:'mediumDate' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noRecent>
+            <p class="empty-text">You haven't filed any complaints yet.</p>
+          </ng-template>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <div class="card quick-actions">
+          <h3 class="action-title">Quick Tasks</h3>
+          <div class="actions-stack">
+            <button class="action-btn" (click)="newComplaint()">
+              <span class="action-icon">&#10133;</span>
+              File Complaint
+            </button>
+            <button class="action-btn" (click)="viewAllComplaints()">
+              <span class="action-icon">&#128196;</span>
+              Track Status
+            </button>
+            <button class="action-btn" (click)="goToProfile()">
+              <span class="action-icon">&#128100;</span>
+              My Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

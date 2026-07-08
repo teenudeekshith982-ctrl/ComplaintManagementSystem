@@ -1,0 +1,104 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="form-card card animate-fade">
+      <h2 class="form-title">Raise a Support Complaint</h2>
+      <p class="form-subtitle">Fill in the details below. Our administrative team will review and assign your complaint immediately.</p>
+
+      <form #complaintForm="ngForm" (submit)="complaintForm.valid && submit(); $event.preventDefault()" novalidate>
+        <!-- Title Input -->
+        <div class="form-group">
+          <label class="form-label">Title / Summary of Issue</label>
+          <input
+            type="text"
+            name="title"
+            class="form-control"
+            [ngModel]="title()"
+            (ngModelChange)="title.set($event)"
+            #titleField="ngModel"
+            [ngClass]="{ 'is-invalid': titleField.invalid && (titleField.touched || complaintForm.submitted) }"
+            placeholder="e.g. Broadband connection dropping frequently"
+            required
+            minlength="5">
+          <div class="invalid-feedback" *ngIf="titleField.invalid && (titleField.touched || complaintForm.submitted)">
+            <span *ngIf="titleField.errors?.['required']">Title is required.</span>
+            <span *ngIf="titleField.errors?.['minlength']">Title must be at least 5 characters long.</span>
+          </div>
+        </div>
+
+        <!-- Category Select -->
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select
+            name="category"
+            class="form-control"
+            [ngModel]="category()"
+            (ngModelChange)="category.set(+$event)">
+            <option [value]="1">Technical</option>
+            <option [value]="2">Finance</option>
+            <option [value]="3">HR</option>
+          </select>
+        </div>
+
+        <!-- Description Textarea -->
+        <div class="form-group">
+          <label class="form-label">Detailed Description</label>
+          <textarea
+            name="description"
+            class="form-control"
+            rows="6"
+            [ngModel]="description()"
+            (ngModelChange)="description.set($event)"
+            #descriptionField="ngModel"
+            [ngClass]="{ 'is-invalid': descriptionField.invalid && (descriptionField.touched || complaintForm.submitted) }"
+            placeholder="Please explain the issue in detail, including steps to reproduce, error codes, or device types..."
+            required
+            minlength="15"></textarea>
+          <div class="invalid-feedback" *ngIf="descriptionField.invalid && (descriptionField.touched || complaintForm.submitted)">
+            <span *ngIf="descriptionField.errors?.['required']">Description is required.</span>
+            <span *ngIf="descriptionField.errors?.['minlength']">Description must be at least 15 characters long.</span>
+          </div>
+        </div>
+
+        <!-- Drag & Drop File Upload Area -->
+        <div class="form-group">
+          <label class="form-label">Upload Attachments (Optional)</label>
+          <div class="drag-drop-zone"
+               [ngClass]="{ 'dragging': isDragging() }"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave($event)"
+               (drop)="onDrop($event)"
+               (click)="fileInput.click()">
+            <span class="upload-icon">&#128228;</span>
+            <p>Drag and drop screenshots/files here, or <strong>click to browse</strong></p>
+            <span class="file-limits">Maximum size: 10MB per file</span>
+          </div>
+          <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" multiple>
+        </div>
+
+        <!-- Selected Attachments Preview -->
+        <div class="attachments-preview" *ngIf="selectedFiles().length > 0">
+          <h4>Selected Files ({{ selectedFiles().length }})</h4>
+          <div class="selected-file-item" *ngFor="let file of selectedFiles(); let i = index">
+            <div class="file-name-meta">
+              <span class="doc-icon">&#128196;</span>
+              <span class="name">{{ file.name }}</span>
+              <span class="size">({{ (file.size / 1024) | number:'1.0-1' }} KB)</span>
+            </div>
+            <button type="button" class="remove-file-btn" (click)="removeFile(i)">&times;</button>
+          </div>
+        </div>
+
+        <!-- Form Buttons -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" [disabled]="submitting()" (click)="cancel()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+            <span *ngIf="submitting()">Submitting...</span>
+            <span *ngIf="!submitting()">Submit Support Complaint</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

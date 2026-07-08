@@ -1,0 +1,191 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="page-header animate-fade">
+      <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
+      <h2>My Account Profile</h2>
+    </div>
+
+    <!-- Alert Banners -->
+    <div class="alert alert-danger" *ngIf="errorMessage()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ errorMessage() }}</p>
+      </div>
+    </div>
+
+    <div class="alert alert-success" *ngIf="successMessage()">
+      <span>&#10003;</span>
+      <div class="alert-content">
+        <p>{{ successMessage() }}</p>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div class="spinner" *ngIf="loading() && !profile()"></div >
+
+    <!-- Main Tab Layout -->
+    <div class="profile-layout animate-fade" *ngIf="profile()">
+      <!-- Sidebar navigation tabs -->
+      <div class="profile-sidebar card">
+        <div class="avatar-section">
+          <div class="avatar">{{ userName().charAt(0).toUpperCase() }}</div>
+          <h3>{{ userName() }}</h3>
+          <span class="role-badge">{{ userRole() }}</span>
+        </div>
+
+        <div class="tabs-list">
+          <button class="tab-btn" [ngClass]="{ 'active': activeTab() === 'view' }" (click)="activeTab.set('view'); errorMessage.set(null); successMessage.set(null)">
+            &#128100; Profile Details
+          </button>
+          <button class="tab-btn" [ngClass]="{ 'active': activeTab() === 'edit' }" (click)="activeTab.set('edit'); errorMessage.set(null); successMessage.set(null)">
+            &#9998; Edit Account Details
+          </button>
+          <button class="tab-btn" [ngClass]="{ 'active': activeTab() === 'password' }" (click)="activeTab.set('password'); errorMessage.set(null); successMessage.set(null)">
+            &#128274; Security Settings
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Panels Content -->
+      <div class="profile-main card">
+        <!-- View details -->
+        <div *ngIf="activeTab() === 'view'">
+          <h3 class="panel-title">Personal Profile Details</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Full Name</span>
+              <span class="value">{{ userName() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Email Address</span>
+              <span class="value">{{ userEmail() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Phone Number</span>
+              <span class="value">{{ userPhone() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">User Role Tier</span>
+              <span class="value">{{ userRole() }}</span>
+            </div>
+            <div class="info-item" *ngIf="departmentName()">
+              <span class="label">Assigned Department</span>
+              <span class="value">{{ departmentName() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Registration Date</span>
+              <span class="value">{{ joinedDate() | date:'mediumDate' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div *ngIf="activeTab() === 'edit'">
+          <h3 class="panel-title">Edit Account Details</h3>
+          <form #editProfileForm="ngForm" (submit)="editProfileForm.valid && updateProfile(); $event.preventDefault()" novalidate>
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input
+                type="text"
+                class="form-control"
+                name="name"
+                [ngModel]="nameInput()"
+                (ngModelChange)="nameInput.set($event)"
+                #profileNameField="ngModel"
+                [ngClass]="{ 'is-invalid': profileNameField.invalid && (profileNameField.touched || editProfileForm.submitted) }"
+                required>
+              <div class="invalid-feedback" *ngIf="profileNameField.invalid && (profileNameField.touched || editProfileForm.submitted)">
+                <span>Name is required.</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input
+                type="text"
+                class="form-control"
+                name="phone"
+                [ngModel]="phoneInput()"
+                (ngModelChange)="phoneInput.set($event)"
+                #profilePhoneField="ngModel"
+                [ngClass]="{ 'is-invalid': profilePhoneField.invalid && (profilePhoneField.touched || editProfileForm.submitted) }"
+                pattern="^\+?[0-9\s\-()]{10,20}$"
+                required>
+              <div class="invalid-feedback" *ngIf="profilePhoneField.invalid && (profilePhoneField.touched || editProfileForm.submitted)">
+                <span *ngIf="profilePhoneField.errors?.['required']">Phone number is required.</span>
+                <span *ngIf="profilePhoneField.errors?.['pattern']">Please enter a valid phone number (min 10 digits).</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="loading()">Save Changes</button>
+          </form>
+        </div>
+
+        <!-- Password security tab -->
+        <div *ngIf="activeTab() === 'password'">
+          <h3 class="panel-title">Change Account Password</h3>
+          <form #changePasswordForm="ngForm" (submit)="changePasswordForm.valid && changePassword(); $event.preventDefault()" novalidate>
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input
+                type="password"
+                class="form-control"
+                name="currentPassword"
+                [ngModel]="currentPassword()"
+                (ngModelChange)="currentPassword.set($event)"
+                #currPassField="ngModel"
+                [ngClass]="{ 'is-invalid': currPassField.invalid && (currPassField.touched || changePasswordForm.submitted) }"
+                placeholder="Enter current password"
+                required>
+              <div class="invalid-feedback" *ngIf="currPassField.invalid && (currPassField.touched || changePasswordForm.submitted)">
+                <span>Current password is required.</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">New Password (Min 8 chars)</label>
+              <input
+                type="password"
+                class="form-control"
+                name="newPassword"
+                [ngModel]="newPassword()"
+                (ngModelChange)="newPassword.set($event)"
+                #newPassField="ngModel"
+                [ngClass]="{ 'is-invalid': newPassField.invalid && (newPassField.touched || changePasswordForm.submitted) }"
+                placeholder="Enter new password"
+                minlength="8"
+                required>
+              <div class="invalid-feedback" *ngIf="newPassField.invalid && (newPassField.touched || changePasswordForm.submitted)">
+                <span *ngIf="newPassField.errors?.['required']">New password is required.</span>
+                <span *ngIf="newPassField.errors?.['minlength']">New password must be at least 8 characters.</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input
+                type="password"
+                class="form-control"
+                name="confirmPassword"
+                [ngModel]="confirmPassword()"
+                (ngModelChange)="confirmPassword.set($event)"
+                #confirmPassField="ngModel"
+                [ngClass]="{ 'is-invalid': (confirmPassField.invalid || newPassword() !== confirmPassword()) && (confirmPassField.touched || changePasswordForm.submitted) }"
+                placeholder="Confirm new password"
+                minlength="8"
+                required>
+              <div class="invalid-feedback" *ngIf="(confirmPassField.invalid || newPassword() !== confirmPassword()) && (confirmPassField.touched || changePasswordForm.submitted)">
+                <span *ngIf="confirmPassField.errors?.['required']">Please confirm your new password.</span>
+                <span *ngIf="newPassword() !== confirmPassword() && !confirmPassField.errors?.['required']">New passwords do not match.</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="loading()">Change Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

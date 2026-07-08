@@ -346,3 +346,5 @@ D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\M
 D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Logging.Abstractions.dll
 D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Options.dll
 D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Microsoft.Extensions.Primitives.dll
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Models\obj\Models.csproj.nuget.dgspec.json
+D:\ComplaintManagementSystem\ComplaintManagementSystem.Tests\bin\Debug\net10.0\Models\obj\project.assets.json

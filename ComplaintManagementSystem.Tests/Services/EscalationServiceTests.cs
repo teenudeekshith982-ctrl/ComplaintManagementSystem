@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Exceptions;
@@ -22,6 +22,7 @@ public class EscalationServiceTests
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<ILogger<EscalationService>> _loggerMock = new();
     private readonly Mock<ICurrentUserService> _currentUserServiceMock = new();
+    private readonly Mock<INotificationService> _notificationServiceMock = new();
     private readonly ComplaintManagementSystemContext _context;
 
     private readonly EscalationService _service;
@@ -42,7 +43,8 @@ public class EscalationServiceTests
             _loggerMock.Object,
             _currentUserServiceMock.Object,
             _employeeRepositoryMock.Object,
-            _context);
+            _context,
+            _notificationServiceMock.Object);
     }
 
     [Fact]

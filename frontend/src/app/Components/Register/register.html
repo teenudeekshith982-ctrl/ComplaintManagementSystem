@@ -1,62 +1,88 @@
 <div class="register-container">
-  <div class="register-card">
-
+  <div class="register-card card animate-fade">
     <h2>Create Account</h2>
-    <p>Register to raise complaints</p>
+    <p class="subtitle">Register to raise complaints and request technical service</p>
 
-    <form>
-
+    <form #registerForm="ngForm" (submit)="registerForm.valid && Register(); $event.preventDefault()" novalidate>
       <div class="form-group">
-        <label>Full Name</label>
+        <label class="form-label">Full Name</label>
         <input
           type="text"
           name="fullName"
+          class="form-control"
           [(ngModel)]="fullName"
-          placeholder="Enter your full name">
+          #fullNameField="ngModel"
+          [ngClass]="{ 'is-invalid': fullNameField.invalid && (fullNameField.touched || registerForm.submitted) }"
+          placeholder="e.g. John Doe"
+          required>
+        <div class="invalid-feedback" *ngIf="fullNameField.invalid && (fullNameField.touched || registerForm.submitted)">
+          <span>Full name is required.</span>
+        </div>
       </div>
 
       <div class="form-group">
-        <label>Email</label>
+        <label class="form-label">Email Address</label>
         <input
           type="email"
           name="email"
+          class="form-control"
           [(ngModel)]="email"
-          placeholder="Enter your email">
+          #emailField="ngModel"
+          [ngClass]="{ 'is-invalid': emailField.invalid && (emailField.touched || registerForm.submitted) }"
+          placeholder="e.g. john@example.com"
+          required
+          email>
+        <div class="invalid-feedback" *ngIf="emailField.invalid && (emailField.touched || registerForm.submitted)">
+          <span *ngIf="emailField.errors?.['required']">Email address is required.</span>
+          <span *ngIf="emailField.errors?.['email']">Please enter a valid email address.</span>
+        </div>
       </div>
 
       <div class="form-group">
-        <label>Phone Number</label>
+        <label class="form-label">Phone Number</label>
         <input
           type="text"
           name="phone"
+          class="form-control"
           [(ngModel)]="phone"
-          placeholder="Enter your phone number">
+          #phoneField="ngModel"
+          [ngClass]="{ 'is-invalid': phoneField.invalid && (phoneField.touched || registerForm.submitted) }"
+          placeholder="e.g. +91 9876543210"
+          pattern="^\+?[0-9\s\-()]{10,20}$"
+          required>
+        <div class="invalid-feedback" *ngIf="phoneField.invalid && (phoneField.touched || registerForm.submitted)">
+          <span *ngIf="phoneField.errors?.['required']">Phone number is required.</span>
+          <span *ngIf="phoneField.errors?.['pattern']">Please enter a valid phone number (min 10 digits).</span>
+        </div>
       </div>
 
       <div class="form-group">
-        <label>Password</label>
+        <label class="form-label">Password (Min 8 chars)</label>
         <input
           type="password"
-          name = 'password'
+          name="password"
+          class="form-control"
           [(ngModel)]="password"
-          placeholder="Enter your password">
+          #passwordField="ngModel"
+          [ngClass]="{ 'is-invalid': passwordField.invalid && (passwordField.touched || registerForm.submitted) }"
+          placeholder="Choose a strong password"
+          minlength="8"
+          required>
+        <div class="invalid-feedback" *ngIf="passwordField.invalid && (passwordField.touched || registerForm.submitted)">
+          <span *ngIf="passwordField.errors?.['required']">Password is required.</span>
+          <span *ngIf="passwordField.errors?.['minlength']">Password must be at least 8 characters.</span>
+        </div>
       </div>
 
-      <button [disabled] ="isloading() || !fullName || !email || !phone || !password " (click)="Register()" type="submit">
-        @if(isloading()){
-          <span>Registering in</span>
-        }
-        @else{
-          <span>Register</span>
-        }
+      <button [disabled]="isloading()" type="submit" class="btn btn-primary w-full">
+        <span *ngIf="isloading()">Registering...</span>
+        <span *ngIf="!isloading()">Create Account</span>
       </button>
-
     </form>
 
     <div class="footer">
-      Already have an account?
-      <a routerLink="/login">Login</a>
+      <span>Already have an account? </span>
+      <a routerLink="/login" class="link">Login here</a>
     </div>
-
   </div>
 </div>

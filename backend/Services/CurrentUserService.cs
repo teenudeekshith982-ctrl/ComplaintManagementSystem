@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using ComplaintManagementSystem.Interfaces;
 
 namespace ComplaintManagementSystem.Services;
@@ -14,44 +14,36 @@ public class CurrentUserService : ICurrentUserService
 
     public int GetUserId()
     {
-        var userid = _httpContextAccessor.HttpContext?
-            .User
-            .FindFirst(ClaimTypes.NameIdentifier)
-            .Value;
-        return int.Parse(userid);
-        
+        var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+        if (claim == null || !int.TryParse(claim.Value, out int userId))
+        {
+            throw new UnauthorizedAccessException("User is not authenticated or user ID claim is missing.");
+        }
+        return userId;
     }
     
     public string GetRole()
     {
-        return _httpContextAccessor.HttpContext?
-            .User
-            .FindFirst(System.Security.Claims.ClaimTypes.Role)?
-            .Value!;
+        return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value 
+               ?? string.Empty;
     }
 
     public int? GetEmployeeId()
     {
-        var employeeId = _httpContextAccessor.HttpContext?
-            .User
-            .FindFirst("EmployeeId")?
-            .Value;
-
-        if (string.IsNullOrEmpty(employeeId))
+        var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeId");
+        if (claim == null || !int.TryParse(claim.Value, out int employeeId))
         {
             return null;
         }
-
-        return int.Parse(employeeId);
+        return employeeId;
     }
     
     public string GetUserName()
     {
-        return _httpContextAccessor
-                   .HttpContext?
-                   .User
-                   .Identity?
-                   .Name
+        var user = _httpContextAccessor.HttpContext?.User;
+        return user?.FindFirst("name")?.Value 
+               ?? user?.FindFirst(ClaimTypes.Name)?.Value 
+               ?? user?.Identity?.Name 
                ?? string.Empty;
     }
 }

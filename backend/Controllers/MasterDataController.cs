@@ -83,7 +83,7 @@ namespace ComplaintManagementSystem.Controllers
             var query = _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Department)
-                .Where(e => e.IsActive && e.User.IsActive);
+                .Where(e => e.IsActive && e.User.IsActive && e.Designation == EmployeeDesignationEnum.Employee);
 
             if (departmentId.HasValue)
             {

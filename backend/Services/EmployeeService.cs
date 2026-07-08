@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Exceptions;
+using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
@@ -47,6 +47,17 @@ public class EmployeeService : IEmployeeService
 
             throw new BadRequestException(
                 "Email already exists");
+        }
+
+        // Validate Phone Number
+        var existingUserWithPhone = await _userRepository.GetByPhoneAsync(request.Phone);
+        if (existingUserWithPhone != null)
+        {
+            _logger.LogError(
+                "Phone number {Phone} already exists",
+                request.Phone);
+
+            throw new ConflictException("Phone number already exists");
         }
 
         // Validate Department

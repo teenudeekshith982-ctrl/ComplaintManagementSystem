@@ -1,0 +1,157 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container animate-fade">
+    <!-- Welcome Header Banner -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2>Admin Dashboard</h2>
+        <p>Full control over support complaints, employee workloads, and system SLAs</p>
+      </div>
+      <div class="banner-actions">
+        <button class="btn btn-secondary btn-sm" (click)="viewReports()">System Analytics</button>
+        <button class="btn btn-primary btn-sm" (click)="newEmployee()">+ Add Employee</button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+    @if(!loading()){
+      <div>
+      <!-- Stats Cards Grid -->
+      <div class="stats-grid">
+        <div class="stat-card card">
+          <div class="stat-icon icon-total">&#128203;</div>
+          <div class="stat-info">
+            <h3>Total Tickets</h3>
+            <span class="stat-value">{{ dashboardData().totalComplaints }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-open">&#128198;</div>
+          <div class="stat-info">
+            <h3>Open</h3>
+            <span class="stat-value text-info">{{ dashboardData().openComplaints }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-progress">&#128295;</div>
+          <div class="stat-info">
+            <h3>In Progress</h3>
+            <span class="stat-value text-warning">{{ dashboardData().inProgressComplaints }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-resolved">&#9989;</div>
+          <div class="stat-info">
+            <h3>Resolved</h3>
+            <span class="stat-value text-success">{{ dashboardData().resolvedComplaints }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-closed">&#128274;</div>
+          <div class="stat-info">
+            <h3>Closed</h3>
+            <span class="stat-value text-muted">{{ dashboardData().closedComplaints }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-escalated">&#128680;</div>
+          <div class="stat-info">
+            <h3>Escalated</h3>
+            <span class="stat-value text-danger glow-red">{{ dashboardData().escalatedComplaints }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-employees">&#128101;</div>
+          <div class="stat-info">
+            <h3>Employees</h3>
+            <span class="stat-value text-success">{{ dashboardData().totalEmployees }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Split Grid -->
+      <div class="content-row">
+        <!-- Recent Complaints Queue -->
+        <div class="card recent-section">
+          <div class="section-header">
+            <h3>Recent Complaints (Top 5)</h3>
+            <button class="btn btn-secondary btn-sm" (click)="viewAllComplaints()">View All Complaints &rarr;</button>
+          </div>
+
+          @if(recentComplaints().length>0){
+            <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Date Filed</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for(c of recentComplaints();track c.complaintId){
+                <tr (click)="viewDetails(c.complaintId)">
+                  <td class="font-weight-bold">{{ c.title }}</td>
+                  <td class="text-secondary">{{ c.userName || 'Customer' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="statusClass(c.status)">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="priorityClass(c.priority)">
+                      {{ c.priority || 'Unassigned' }}
+                    </span>
+                  </td>
+                  <td class="text-secondary">{{ c.createdAt | date:'mediumDate' }}</td>
+                </tr>
+              }
+              </tbody>
+            </table>
+          </div>
+          }
+          @else{
+            <p class="empty-text">No support complaints are filed in the system.</p>
+          }
+        </div>
+
+        <!-- Management widget stack -->
+        <div class="card quick-actions">
+          <h3 class="action-title">System Actions</h3>
+          <div class="actions-stack">
+            <button class="action-btn" (click)="viewAllComplaints()">
+              <span class="action-icon">&#128203;</span>
+              Manage Tickets
+            </button>
+            <button class="action-btn" (click)="manageEmployees()">
+              <span class="action-icon">&#128101;</span>
+              Manage Employees
+            </button>
+            <button class="action-btn" (click)="manageEscalations()">
+              <span class="action-icon">&#128680;</span>
+              Manage Escalations
+            </button>
+            <button class="action-btn" (click)="viewReports()">
+              <span class="action-icon">&#128200;</span>
+              Analytics Reports
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+    
+  </div>
+</div>

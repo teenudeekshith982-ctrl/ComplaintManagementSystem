@@ -1,0 +1,104 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="page-header animate-fade">
+      <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
+      <div class="title-action-row">
+        <h2>Escalated Complaints Queue</h2>
+      </div>
+    </div>
+
+    <!-- Spinner Loader -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+
+    <!-- Table output -->
+    <div *ngIf="!loading() && !error()">
+      <div class="table-wrapper" *ngIf="escalations().length > 0; else emptyState">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Complaint Title</th>
+              <th>Department</th>
+              <th>Assigned technician</th>
+              <th>Escalation Level</th>
+              <th>Escalation Reason</th>
+              <th>Date Escalated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of escalations()" (click)="viewDetails(e.complaintId)">
+              <td class="font-weight-bold">#{{ e.complaintId }}</td>
+              <td class="font-weight-bold">{{ e.complaintTitle }}</td>
+              <td class="text-secondary">{{ e.department }}</td>
+              <td class="text-secondary">{{ e.assignedTo || 'Unassigned' }}</td>
+              <td>
+                <span class="badge badge-escalated">{{ e.escalationLevel }}</span>
+              </td>
+              <td class="text-secondary truncate-text" [title]="e.reason">{{ e.reason }}</td>
+              <td class="text-secondary">{{ e.escalatedAt | date:'medium' }}</td>
+              <td>
+                <div class="flex-row gap-xs" (click)="$event.stopPropagation()">
+                  <button class="btn btn-danger btn-xs" (click)="openActionModal(e, 'ReassignBack')">Reassign</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="card text-center padding-xl animate-fade">
+          <p class="empty-text">No active escalations found requiring resolution.</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-footer" *ngIf="totalRecords() > 0">
+        <span class="records-info">Showing page {{ pageNumber() }} of {{ totalPages() }} ({{ totalRecords() }} total escalated tickets)</span>
+        <div class="pagination-buttons">
+          <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() <= 1" (click)="prevPage()">Previous</button>
+          <span class="current-page">{{ pageNumber() }}</span>
+          <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() >= totalPages()" (click)="nextPage()">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resolution comments Modal Dialogue Overlay -->
+  <div class="modal-overlay" *ngIf="showModal()">
+    <div class="modal-card animate-fade">
+      <h3 class="modal-title text-danger">
+        <span>&#8634; Reassign Escalation</span>
+      </h3>
+      <p class="modal-subtitle">
+        Ticket: <strong>#{{ activeEscalation()?.complaintId }} - {{ activeEscalation()?.complaintTitle }}</strong>
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Feedback Comments / Action Notes</label>
+        <textarea class="form-control" rows="4" 
+                  placeholder="Explain feedback/reasons for reassigning back to the technician..."
+                  [ngModel]="actionComments()" (ngModelChange)="actionComments.set($event)"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" [disabled]="submittingAction()" (click)="showModal.set(false)">Cancel</button>
+        <button class="btn btn-sm btn-danger" [disabled]="submittingAction() || !actionComments().trim()" 
+                (click)="submitAction()">
+          Confirm Action
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

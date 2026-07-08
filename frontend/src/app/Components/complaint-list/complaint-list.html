@@ -1,0 +1,124 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="page-header animate-fade">
+      <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
+      <div class="title-action-row">
+        <h2>My Support Complaints</h2>
+        <button class="btn btn-primary" (click)="newComplaint()">+ Raise Complaint</button>
+      </div>
+    </div>
+
+    <!-- Filter Control Panel Card -->
+    <div class="card filter-card animate-fade">
+      <div class="filter-grid">
+        <!-- Search -->
+        <div class="form-group">
+          <label class="form-label">Search Issue</label>
+          <input type="text" class="form-control" placeholder="Search by title..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event); pageNumber.set(1)">
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event === 'null' ? null : +$event); pageNumber.set(1)">
+            <option value="null">All Statuses</option>
+            <option value="1">Open</option>
+            <option value="2">Assigned</option>
+            <option value="3">In Progress</option>
+            <option value="5">Resolved</option>
+            <option value="6">Closed</option>
+            <option value="7">Reopened</option>
+          </select>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-control" [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event === 'null' ? null : +$event); pageNumber.set(1)">
+            <option value="null">All Categories</option>
+            <option value="1">Technical</option>
+            <option value="2">Finance</option>
+            <option value="3">HR</option>
+          </select>
+        </div>
+
+        <!-- Dates -->
+        <div class="form-group">
+          <label class="form-label">From Date</label>
+          <input type="date" class="form-control" [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event); pageNumber.set(1)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">To Date</label>
+          <input type="date" class="form-control" [ngModel]="toDate()" (ngModelChange)="toDate.set($event); pageNumber.set(1)">
+        </div>
+
+        <div class="form-group flex-end">
+          <button class="btn btn-secondary w-full" (click)="resetFilters()">Clear Filters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spinner Loader -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+
+    <!-- List Output -->
+    <div *ngIf="!loading() && !error()">
+      <div class="table-wrapper" *ngIf="complaints().length > 0; else emptyState">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Date Filed</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of complaints()" (click)="viewDetails(c.complaintId)">
+              <td class="font-weight-bold">{{ c.title }}</td>
+              <td class="text-secondary">{{ c.category }}</td>
+              <td>
+                <span class="badge" [ngClass]="statusClass(c.status)">
+                  {{ c.status }}
+                </span>
+              </td>
+              <td class="text-secondary">{{ c.createdAt | date:'mediumDate' }}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" (click)="viewDetails(c.complaintId); $event.stopPropagation()">View &rarr;</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="card text-center padding-xl">
+          <p class="empty-text">No complaints found matching your filter criteria.</p>
+          <button class="btn btn-primary mt-sm" (click)="resetFilters()" *ngIf="statusFilter() !== null || categoryFilter() !== null || searchTerm() || fromDate() || toDate()">Reset Filters</button>
+        </div>
+      </ng-template>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-footer" *ngIf="totalRecords() > 0">
+        <span class="records-info">Showing page {{ pageNumber() }} of {{ totalPages() }} ({{ totalRecords() }} total complaints)</span>
+        <div class="pagination-buttons">
+          <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() <= 1" (click)="prevPage()">Previous</button>
+          <span class="current-page">{{ pageNumber() }}</span>
+          <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() >= totalPages()" (click)="nextPage()">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

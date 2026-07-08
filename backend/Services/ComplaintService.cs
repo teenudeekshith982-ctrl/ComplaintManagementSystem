@@ -446,6 +446,11 @@ public class ComplaintService : IComplaintService
         throw new BadRequestException("Employee is inactive");
     }
 
+    if (employee.Designation != EmployeeDesignationEnum.Employee)
+    {
+        throw new BusinessRuleException("Complaints can only be assigned to employees with the designation 'Employee'.");
+    }
+
     if (complaint.PriorityId == null)
     {
         throw new BadRequestException("Priority must be assigned before assigning an employee");
@@ -831,7 +836,11 @@ public class ComplaintService : IComplaintService
 
             CreatedByUserId = complaint.UserId,
 
-            AssignedEmployeeId = complaint.EmployeeId
+            AssignedEmployeeId = complaint.EmployeeId,
+
+            CategoryId = complaint.CategoryId,
+
+            CategoryName = ((ComplaintCategoryEnum)complaint.CategoryId).ToString()
         };
     }
 

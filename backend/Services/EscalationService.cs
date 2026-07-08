@@ -20,6 +20,8 @@ public class EscalationService : IEscalationService
     private readonly  IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
     private readonly ComplaintManagementSystemContext _context;
+    private readonly INotificationService _notificationService;
+
     public EscalationService(
         IEscalationRepository escalationRepository,
         IComplaintRepository complaintRepository,
@@ -28,7 +30,8 @@ public class EscalationService : IEscalationService
         ILogger<EscalationService> logger,
         ICurrentUserService currentUserService,
         IEmployeeRepository employeeRepository,
-        ComplaintManagementSystemContext context)
+        ComplaintManagementSystemContext context,
+        INotificationService notificationService)
     {
         _escalationRepository = escalationRepository;
         _complaintRepository = complaintRepository;
@@ -38,7 +41,7 @@ public class EscalationService : IEscalationService
         _currentUserService = currentUserService;
         _employeeRepository = employeeRepository;
         _context = context;
-
+        _notificationService = notificationService;
     }
         
         
@@ -574,6 +577,17 @@ public class EscalationService : IEscalationService
                     ChangedBy = _currentUserService.GetRole(),
                     CreatedAt = DateTime.UtcNow
                 });
+
+                // Notifications
+                await _notificationService.CreateAsync(
+                    targetEmployee.UserId,
+                    $"Escalation for complaint \"{complaint.Title}\" has been declined by {adminOrManagerName} and reassigned back to you. Comments: {comments}",
+                    complaint.ComplaintId);
+
+                await _notificationService.CreateAsync(
+                    complaint.UserId,
+                    $"Escalation for your complaint \"{complaint.Title}\" was declined and has been reassigned to {targetEmployee.User?.Name}.",
+                    complaint.ComplaintId);
             }
             else
             {
@@ -590,6 +604,27 @@ public class EscalationService : IEscalationService
                 ChangedBy = _currentUserService.GetRole(),
                 CreatedAt = DateTime.UtcNow
             });
+
+            // Notifications
+            await _notificationService.CreateAsync(
+                complaint.UserId,
+                $"Escalation for your complaint \"{complaint.Title}\" has been accepted by {adminOrManagerName}. Comments: {comments}",
+                complaint.ComplaintId);
+
+            if (complaint.EmployeeId.HasValue)
+            {
+                var employee = await _context.Employees
+                    .Include(e => e.User)
+                    .FirstOrDefaultAsync(e => e.EmployeeId == complaint.EmployeeId.Value);
+
+                if (employee != null)
+                {
+                    await _notificationService.CreateAsync(
+                        employee.UserId,
+                        $"Escalation for complaint \"{complaint.Title}\" has been accepted. It is assigned to you. Comments: {comments}",
+                        complaint.ComplaintId);
+                }
+            }
         }
         else
         {

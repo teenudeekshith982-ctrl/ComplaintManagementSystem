@@ -120,6 +120,7 @@ namespace ComplaintManagementSystem.Controllers
             });
         }
         
+        [Authorize]
         [HttpGet("{complaintId}/tracking")]
         public async Task<IActionResult>
             GetComplaintTracking(int complaintId)
@@ -131,6 +132,7 @@ namespace ComplaintManagementSystem.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("{id}/complaintdetails")]
         public async Task<IActionResult> GetComplaintDetails(int id)
         {

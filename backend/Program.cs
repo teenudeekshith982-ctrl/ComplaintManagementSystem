@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using ComplaintManagementSystem.Contexts;
+using ComplaintManagementSystem.Hubs;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Mappings;
 using ComplaintManagementSystem.Middlewares;
@@ -31,6 +32,8 @@ builder.Services
         options.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter());
     });
+
+builder.Services.AddSignalR();
 
 
 
@@ -70,7 +73,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:4200")
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -103,6 +107,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<AutoEscalationBackgroundService>();
 #endregion
 
 #region Mappings
@@ -127,5 +132,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

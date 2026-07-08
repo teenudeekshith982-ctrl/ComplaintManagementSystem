@@ -1,0 +1,257 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container" *ngIf="!loading() && complaint(); else loaderOrError">
+    <!-- Breadcrumb Header -->
+    <div class="details-header animate-fade">
+      <button class="btn btn-secondary btn-sm" (click)="back()">&larr; Back</button>
+      <div class="title-section">
+        <h2>{{ complaint()?.title }}</h2>
+        <span class="badge" [ngClass]="{
+          'badge-open': complaint()?.status === 'Open' || complaint()?.status === 'Reopened',
+          'badge-assigned': complaint()?.status === 'Assigned',
+          'badge-progress': complaint()?.status === 'InProgress',
+          'badge-resolved': complaint()?.status === 'Resolved',
+          'badge-closed': complaint()?.status === 'Closed'
+        }">{{ complaint()?.status }}</span>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="details-grid">
+      <!-- Left Column: Details, description, timeline, attachments -->
+      <div class="grid-left">
+        <!-- Overview Card -->
+        <div class="card overview-card">
+          <h3 class="section-title">Complaint Overview</h3>
+          <div class="meta-list">
+            <div class="meta-item">
+              <span class="meta-label">Category:</span>
+              <span class="meta-value">{{ complaint()?.categoryName || 'General' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Priority:</span>
+              <span class="meta-value priority-text" [ngClass]="{
+                'text-danger': complaint()?.priority === 'High',
+                'text-warning': complaint()?.priority === 'Medium',
+                'text-success': complaint()?.priority === 'Low'
+              }">{{ complaint()?.priority || 'Not Assigned' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Created At:</span>
+              <span class="meta-value">{{ complaint()?.createdAt | date:'medium' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Due Date:</span>
+              <span class="meta-value text-warning" *ngIf="complaint()?.dueDate; else noDueDate">
+                {{ complaint()?.dueDate | date:'medium' }}
+              </span>
+              <ng-template #noDueDate>
+                <span class="meta-value text-muted">SLA Not Computed</span>
+              </ng-template>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Assigned To:</span>
+              <span class="meta-value text-success font-weight-bold">
+                {{ complaint()?.assignedto || 'Unassigned' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="description-section">
+            <h4>Description</h4>
+            <p>{{ complaint()?.description }}</p>
+          </div>
+        </div>
+
+        <!-- Attachments Card -->
+        <div class="card attachments-card">
+          <h3 class="section-title">Attachments ({{ complaint()?.attachments?.length || 0 }})</h3>
+          <div class="attachment-list" *ngIf="complaint()?.attachments?.length; else noAttachments">
+            <div class="attachment-item" *ngFor="let a of complaint()?.attachments">
+              <div class="attachment-info">
+                <span class="attachment-icon">&#128196;</span>
+                <div class="attachment-meta">
+                  <span class="attachment-name">{{ a.fileName }}</span>
+                  <span class="attachment-date">Uploaded At: {{ a.uploadedAt | date:'short' }}</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" (click)="downloadAttachment(a.attachmentId, a.fileName)">
+                &#8595; Download
+              </button>
+            </div>
+          </div>
+          <ng-template #noAttachments>
+            <p class="empty-text">No attachments uploaded for this complaint.</p>
+          </ng-template>
+        </div>
+
+        <!-- Tracking Timeline -->
+        <div class="card timeline-card">
+          <h3 class="section-title">Status Tracking Timeline</h3>
+          <div class="timeline" *ngIf="trackingLogs().length; else noTracking">
+            <div class="timeline-item" *ngFor="let log of trackingLogs()">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <strong class="timeline-action">{{ log.action }}</strong>
+                  <span class="timeline-date">{{ log.createdAt | date:'short' }}</span>
+                </div>
+                <p class="timeline-desc">{{ log.description }}</p>
+                <small class="timeline-user">Performed By: {{ log.performedBy }}</small>
+              </div>
+            </div>
+          </div>
+          <ng-template #noTracking>
+            <p class="empty-text">No tracking history found.</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Right Column: Role Actions Panel and Comments -->
+      <div class="grid-right">
+        <!-- Role Specific Actions Panel -->
+        <div class="card actions-card">
+          <h3 class="section-title">Manage Complaint</h3>
+          
+          <!-- Admin Actions -->
+          <div class="actions-panel" *ngIf="role() === 'Admin'">
+            <!-- Step 1: Assign Priority -->
+            <div class="action-section">
+              <label class="form-label">Assign Priority & Due Date</label>
+              <div class="flex-row">
+                <select class="form-control" [value]="selectedPriority()" (change)="selectedPriority.set(+$any($event.target).value)">
+                  <option [value]="1">Critical (6 hours SLA)</option>
+                  <option [value]="2">High (12 hours SLA)</option>
+                  <option [value]="3">Medium (24 hours SLA)</option>
+                  <option [value]="4">Low (48 hours SLA)</option>
+                </select>
+                <button class="btn btn-primary" [disabled]="submittingAction()" (click)="assignPriority()">Set</button>
+              </div>
+            </div>
+
+            <!-- Step 2: Assign Employee -->
+            <div class="action-section" *ngIf="complaint()?.priorityName || complaint()?.priority">
+              <label class="form-label">Assign Employee</label>
+              <div class="flex-row gap-sm">
+                <select class="form-control" [value]="selectedEmployeeId()" (change)="selectedEmployeeId.set(+$any($event.target).value)">
+                  <option value="0">Select Employee...</option>
+                  <option *ngFor="let emp of employees()" [value]="emp.employeeId">
+                    {{ emp.employeeName }} ({{ emp.designation }})
+                  </option>
+                </select>
+                <button class="btn btn-primary" [disabled]="submittingAction() || selectedEmployeeId() === 0" (click)="manualAssignEmployee()">Assign</button>
+              </div>
+              <div class="divider">OR</div>
+              <button class="btn btn-secondary w-full" [disabled]="submittingAction() || complaint()?.assignedto" (click)="autoAssignEmployee()">
+                Auto-Assign (Least Loaded)
+              </button>
+            </div>
+            
+            <p class="info-text text-center text-muted" *ngIf="!complaint()?.priorityName && !complaint()?.priority">
+              Set priority before employee assignment can be made.
+            </p>
+          </div>
+
+          <!-- Employee Actions -->
+          <div class="actions-panel" *ngIf="role() === 'Employee'">
+            <div class="action-buttons-stack">
+              <!-- Start Work (if assigned) -->
+              <button class="btn btn-primary w-full" *ngIf="complaint()?.status === 'Assigned'" [disabled]="submittingAction()" (click)="startWork()">
+                Start Work / Move to In-Progress
+              </button>
+
+              <!-- Resolve Complaint (if inprogress) -->
+              <button class="btn btn-success w-full" *ngIf="complaint()?.status === 'InProgress' || complaint()?.status==='Reopened'" [disabled]="submittingAction()" (click)="resolveComplaint()">
+                Mark as Resolved
+              </button>
+
+              <!-- Escalate (if not closed/resolved) -->
+              <button class="btn btn-danger w-full" *ngIf="complaint()?.status !== 'Closed' && complaint()?.status !== 'Resolved'" [disabled]="submittingAction()" (click)="showEscalationModal.set(true)">
+                Escalate Complaint
+              </button>
+            </div>
+            <p class="empty-text text-center text-muted" *ngIf="complaint()?.status === 'Closed' || complaint()?.status === 'Resolved'">
+              No actions available. Complaint is {{ complaint()?.status }}.
+            </p>
+          </div>
+
+          <!-- Customer Actions -->
+          <div class="actions-panel" *ngIf="role() === 'User'">
+            <div class="action-buttons-stack" *ngIf="complaint()?.status === 'Resolved'; else customerNoActions">
+              <button class="btn btn-success w-full" [disabled]="submittingAction()" (click)="closeComplaint()">
+                Accept Resolution & Close Complaint
+              </button>
+              <button class="btn btn-danger w-full" [disabled]="submittingAction()" (click)="reopenComplaint()">
+                Unsatisfied? Reopen Complaint
+              </button>
+            </div>
+            <ng-template #customerNoActions>
+              <p class="info-text text-muted text-center">
+                Actions will become available once the assigned technician resolves this complaint. Current status: <strong>{{ complaint()?.status }}</strong>.
+              </p>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- Comments Card -->
+        <div class="card comments-card">
+          <h3 class="section-title">Communication Log</h3>
+          <div class="comments-container">
+            <div class="comments-list" *ngIf="complaint()?.comments?.length; else noComments">
+              <div class="comment-bubble" *ngFor="let comment of complaint()?.comments">
+                <div class="comment-meta">
+                  <span class="comment-author">{{ comment.commentedBy }}</span>
+                  <span class="comment-date">{{ comment.createdAt | date:'short' }}</span>
+                </div>
+                <p class="comment-text">{{ comment.commentText }}</p>
+              </div>
+            </div>
+            <ng-template #noComments>
+              <p class="empty-text">No comments have been posted yet.</p>
+            </ng-template>
+
+            <!-- Write Comment -->
+            <div class="comment-box-input">
+              <textarea class="form-control" rows="3" placeholder="Type a message or response..." [ngModel]="newCommentText()" (ngModelChange)="newCommentText.set($event)"></textarea>
+              <button class="btn btn-primary" [disabled]="submittingAction() || !newCommentText().trim()" (click)="submitComment()">
+                Send Message
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading / Error states -->
+  <ng-template #loaderOrError>
+    <div class="content-container flex-center">
+      <div class="spinner" *ngIf="loading() && !error()"></div>
+      <div class="alert alert-danger max-w-md" *ngIf="error()">
+        <span>&#9888;</span>
+        <div class="alert-content">
+          <p>{{ error() }}</p>
+          <button class="btn btn-secondary btn-sm mt-sm" (click)="loadDetails()">Retry</button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Escalation Modal Overlay -->
+  <div class="modal-overlay" *ngIf="showEscalationModal()">
+    <div class="modal-card animate-fade">
+      <h3 class="modal-title">&#9888; Escalate Complaint</h3>
+      <p class="modal-subtitle">Briefly describe the reason for escalating this complaint to a supervisor.</p>
+      
+      <div class="form-group">
+        <textarea class="form-control" rows="4" placeholder="Enter reason (e.g. requires senior technician tools, parts out of stock, specialized approval required)..." [ngModel]="escalationReason()" (ngModelChange)="escalationReason.set($event)"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" [disabled]="submittingAction()" (click)="showEscalationModal.set(false)">Cancel</button>
+        <button class="btn btn-danger" [disabled]="submittingAction() || !escalationReason().trim()" (click)="submitEscalation()">Submit Escalation</button>
+      </div>
+    </div>
+  </div>
+</div>

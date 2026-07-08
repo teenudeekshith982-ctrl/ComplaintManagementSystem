@@ -17,3 +17,10 @@ export interface RegisterRequest{
 export interface RegisterResponse{
     userId : number;
 }
+
+export interface JwtData{
+    userId: number; 
+    name: string; 
+    role: string; 
+    employeeId?: number; 
+}

@@ -1,0 +1,137 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="page-header animate-fade">
+      <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
+      <div class="title-action-row">
+        <h2>System Performance Analytics</h2>
+      </div>
+    </div>
+
+    <!-- Spinner Loader -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+
+    <!-- Analytics Dashboard Output -->
+    <div *ngIf="!loading() && !error() && dashboardSummary()">
+      <!-- Performance Metrics Row -->
+      <div class="reports-kpi-row">
+        <div class="kpi-card card">
+          <span class="kpi-icon icon-danger">&#128680;</span>
+          <div class="kpi-details">
+            <h3>SLA Breach Rate</h3>
+            <span class="kpi-value text-danger">{{ dashboardSummary()?.slaBreachRate | number:'1.0-1' }}%</span>
+            <span class="kpi-hint">Breached tickets percentage</span>
+          </div>
+        </div>
+
+        <div class="kpi-card card">
+          <span class="kpi-icon icon-warning">&#9200;</span>
+          <div class="kpi-details">
+            <h3>Avg Resolution Time</h3>
+            <span class="kpi-value text-warning">{{ dashboardSummary()?.averageResolutionTimeHours | number:'1.0-1' }}h</span>
+            <span class="kpi-hint">Hours to resolve tickets</span>
+          </div>
+        </div>
+
+        <div class="kpi-card card">
+          <span class="kpi-icon icon-info">&#128227;</span>
+          <div class="kpi-details">
+            <h3>Escalations Queue</h3>
+            <span class="kpi-value text-info">{{ dashboardSummary()?.openEscalationsCount }}</span>
+            <span class="kpi-hint">Active pending escalations</span>
+          </div>
+        </div>
+
+        <div class="kpi-card card">
+          <span class="kpi-icon icon-neutral">&#128393;</span>
+          <div class="kpi-details">
+            <h3>Unassigned Tickets</h3>
+            <span class="kpi-value text-purple">{{ dashboardSummary()?.unassignedTicketsCount }}</span>
+            <span class="kpi-hint">Tickets awaiting technician</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section Grid -->
+      <div class="charts-grid">
+        <!-- Distribution Bar Charts -->
+        <div class="grid-left-charts">
+          <!-- Status Distribution -->
+          <div class="card chart-panel">
+            <h3 class="chart-title">Complaints by Status</h3>
+            <div class="bar-chart-container">
+              <div class="bar-chart-item" *ngFor="let item of statusData()">
+                <div class="bar-chart-labels">
+                  <span class="bar-name">{{ item.name }}</span>
+                  <span class="bar-count">{{ item.value }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill bg-primary" [style.width.%]="(item.value / maxStatusValue()) * 100"></div>
+                </div>
+              </div>
+              <p class="empty-text" *ngIf="statusData().length === 0">No data points.</p>
+            </div>
+          </div>
+
+          <!-- Category Distribution -->
+          <div class="card chart-panel">
+            <h3 class="chart-title">Complaints by Category</h3>
+            <div class="bar-chart-container">
+              <div class="bar-chart-item" *ngFor="let item of categoryData()">
+                <div class="bar-chart-labels">
+                  <span class="bar-name">{{ item.name }}</span>
+                  <span class="bar-count">{{ item.value }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill bg-success" [style.width.%]="(item.value / maxCategoryValue()) * 100"></div>
+                </div>
+              </div>
+              <p class="empty-text" *ngIf="categoryData().length === 0">No data points.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Monthly Trend Chart -->
+        <div class="grid-right-charts">
+          <div class="card chart-panel trend-panel">
+            <h3 class="chart-title">Monthly Creation Trends</h3>
+            <p class="chart-subtitle">Complaints created over the last 6 months</p>
+            
+            <div class="trend-chart-wrapper" *ngIf="trendData().length > 0; else noTrend">
+              <div class="trend-chart-y-axis">
+                <span>{{ maxTrendValue() }}</span>
+                <span>{{ maxTrendValue() / 2 | number:'1.0-0' }}</span>
+                <span>0</span>
+              </div>
+              
+              <div class="trend-chart-bars">
+                <div class="trend-bar-column" *ngFor="let month of trendData()">
+                  <div class="trend-bar-container">
+                    <div class="trend-bar-fill bg-primary-gradient" 
+                         [style.height.%]="(month.value / maxTrendValue()) * 100"
+                         [title]="month.name + ': ' + month.value">
+                      <span class="bar-tooltip">{{ month.value }}</span>
+                    </div>
+                  </div>
+                  <span class="trend-bar-label">{{ month.name }}</span>
+                </div>
+              </div>
+            </div>
+            <ng-template #noTrend>
+              <p class="empty-text">No trend logs found.</p>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

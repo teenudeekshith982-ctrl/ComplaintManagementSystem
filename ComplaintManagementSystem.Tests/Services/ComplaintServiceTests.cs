@@ -1,4 +1,4 @@
-﻿
+
 using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Exceptions;
@@ -27,6 +27,7 @@ public class ComplaintServiceTests
     private readonly Mock<IEmployeeRepository> _employeeRepositoryMock;
     private readonly Mock<IEscalationRepository> _escalationRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<INotificationService> _notificationServiceMock;
     private readonly ComplaintManagementSystemContext _context;
 
     private readonly ComplaintService _service;
@@ -44,6 +45,7 @@ public class ComplaintServiceTests
         _employeeRepositoryMock = new();
         _escalationRepositoryMock = new();
         _userRepositoryMock = new();
+        _notificationServiceMock = new();
 
         var options = new DbContextOptionsBuilder<ComplaintManagementSystemContext>()
             .UseInMemoryDatabase(databaseName: $"ComplaintTestDb_{Guid.NewGuid()}")
@@ -63,6 +65,7 @@ public class ComplaintServiceTests
             _employeeRepositoryMock.Object,
             _escalationRepositoryMock.Object,
             _userRepositoryMock.Object,
+            _notificationServiceMock.Object,
             _context);
     }
 
@@ -214,5 +217,42 @@ public class ComplaintServiceTests
 
         await action.Should()
             .ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task AssignComplaintToEmployeeAsync_ShouldThrowBusinessRuleException_WhenEmployeeIsNotDesignatedAsEmployee()
+    {
+        var complaint = new Complaint
+        {
+            ComplaintId = 1,
+            PriorityId = 1,
+            CategoryId = 1,
+            ComplaintCategory = new ComplaintCategory { Categoryname = "Technical" }
+        };
+
+        var employee = new Employee
+        {
+            EmployeeId = 10,
+            IsActive = true,
+            Designation = EmployeeDesignationEnum.TeamLead,
+            DepartmentId = 1,
+            Department = new Department { DepartmentName = "Technical" },
+            User = new User { Name = "John Doe" }
+        };
+
+        _complaintRepositoryMock
+            .Setup(x => x.GetByIdAsync(1))
+            .ReturnsAsync(complaint);
+
+        _employeeRepositoryMock
+            .Setup(x => x.GetByIdAsync(10))
+            .ReturnsAsync(employee);
+
+        Func<Task> action =
+            () => _service.AssignComplaintToEmployeeAsync(1, 10);
+
+        await action.Should()
+            .ThrowAsync<BusinessRuleException>()
+            .WithMessage("Complaints can only be assigned to employees with the designation 'Employee'.");
     }
 }

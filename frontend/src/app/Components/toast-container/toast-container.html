@@ -1,0 +1,21 @@
+<div class="toast-container">
+  <div *ngFor="let toast of toasts()" 
+       class="toast-item animate-slide-in" 
+       [ngClass]="{
+         'toast-success': toast.type === 'success',
+         'toast-error': toast.type === 'error',
+         'toast-info': toast.type === 'info',
+         'toast-warning': toast.type === 'warning'
+       }">
+    <div class="toast-icon">
+      <span *ngIf="toast.type === 'success'">&#10003;</span>
+      <span *ngIf="toast.type === 'error'">&#9888;</span>
+      <span *ngIf="toast.type === 'info'">&#8505;</span>
+      <span *ngIf="toast.type === 'warning'">&#9888;</span>
+    </div>
+    <div class="toast-message">
+      {{ toast.message }}
+    </div>
+    <button class="toast-close-btn" (click)="remove(toast.id)">&times;</button>
+  </div>
+</div>

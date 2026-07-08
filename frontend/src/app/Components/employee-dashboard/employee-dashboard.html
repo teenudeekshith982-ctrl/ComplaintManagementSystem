@@ -1,0 +1,128 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container animate-fade">
+    <!-- Welcome Header Banner -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2>Employee Dashboard</h2>
+        <p>Manage and resolve your assigned complaints efficiently to meet SLAs</p>
+      </div>
+      <button class="btn btn-primary" (click)="viewAssigned()">View Assigned Queue</button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="spinner" *ngIf="loading() && !error()"></div>
+
+    <!-- Error Alert Box -->
+    <div class="alert alert-danger" *ngIf="error()">
+      <span>&#9888;</span>
+      <div class="alert-content">
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="!loading()">
+      <!-- Stats Cards Grid -->
+      <div class="stats-grid">
+        <div class="stat-card card">
+          <div class="stat-icon icon-assigned">&#128393;</div>
+          <div class="stat-info">
+            <h3>Assigned</h3>
+            <span class="stat-value text-purple">{{ assignedCount() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-progress">&#128295;</div>
+          <div class="stat-info">
+            <h3>In Progress</h3>
+            <span class="stat-value text-warning">{{ inProgressCount() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-resolved">&#9989;</div>
+          <div class="stat-info">
+            <h3>Resolved</h3>
+            <span class="stat-value text-success">{{ resolvedCount() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-escalated">&#128680;</div>
+          <div class="stat-info">
+            <h3>Escalated</h3>
+            <span class="stat-value text-danger">{{ escalatedCount() }}</span>
+          </div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon icon-overdue">&#9200;</div>
+          <div class="stat-info">
+            <h3>Overdue (SLA)</h3>
+            <span class="stat-value text-danger glow-red">{{ overdueCount() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Split Grid -->
+      <div class="content-row">
+        <!-- Assigned Queue List -->
+        <div class="card recent-section">
+          <div class="section-header">
+            <h3>Assigned Work Queue (Top 5)</h3>
+            <button class="btn btn-secondary btn-sm" (click)="viewAssigned()">View All Queue &rarr;</button>
+          </div>
+
+          <div class="table-wrapper" *ngIf="assignedComplaints().length > 0; else emptyQueue">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of assignedComplaints()" (click)="viewDetails(c.complaintId)">
+                  <td class="font-weight-bold">{{ c.title }}</td>
+                  <td class="text-secondary">{{ c.userName || 'Customer' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="statusClass(c.status)">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="priorityClass(c.priority)">
+                      {{ c.priority || 'Unassigned' }}
+                    </span>
+                  </td>
+                  <td [ngClass]="{'overdue-text': isOverdue(c.dueDate)}" class="text-secondary">
+                    {{ c.dueDate ? (c.dueDate | date:'short') : 'N/A' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #emptyQueue>
+            <p class="empty-text">No active complaints are currently assigned to you.</p>
+          </ng-template>
+        </div>
+
+        <!-- Quick actions tasks card -->
+        <div class="card quick-actions">
+          <h3 class="action-title">Quick Tasks</h3>
+          <div class="actions-stack">
+            <button class="action-btn" (click)="viewAssigned()">
+              <span class="action-icon">&#128203;</span>
+              View My Queue
+            </button>
+            <button class="action-btn" (click)="goToProfile()">
+              <span class="action-icon">&#128100;</span>
+              Technician Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -38,22 +38,17 @@ public class AnalyticsRepository : IAnalyticsRepository
                 c.StatusId ==
                 (int)ComplaintStatusEnum.Closed);
 
-    var resolvedComplaintList =
-        await _context.Complaints
-            .Where(c =>
-                c.ResolvedAt != null)
-            .ToListAsync();
+    var resolvedComplaintTimes = await _context.Complaints
+        .Where(c => c.ResolvedAt != null)
+        .Select(c => new { c.CreatedAt, c.ResolvedAt })
+        .ToListAsync();
 
     double averageResolutionHours = 0;
 
-    if (resolvedComplaintList.Any())
+    if (resolvedComplaintTimes.Any())
     {
-        averageResolutionHours =
-            resolvedComplaintList
-                .Average(c =>
-                    (c.ResolvedAt!.Value -
-                     c.CreatedAt)
-                    .TotalHours);
+        averageResolutionHours = resolvedComplaintTimes
+            .Average(c => (c.ResolvedAt!.Value - c.CreatedAt).TotalHours);
     }
 
     var breachedComplaints =

@@ -1,0 +1,102 @@
+.title-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.title-action-row h2 {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.filter-card {
+  padding: 1.5rem !important;
+  margin-bottom: 2rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.25fr 1.25fr 1.25fr 1fr;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.filter-grid .form-group {
+  margin-bottom: 0;
+}
+
+.flex-end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Pagination Control Toolbar */
+.pagination-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-surface-glass);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.records-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.current-page {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary);
+  width: 24px;
+  text-align: center;
+}
+
+.padding-xl {
+  padding: 4rem 2rem !important;
+}
+
+.badge-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.badge-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+@media (max-width: 1200px) {
+  .filter-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+  .title-action-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+}

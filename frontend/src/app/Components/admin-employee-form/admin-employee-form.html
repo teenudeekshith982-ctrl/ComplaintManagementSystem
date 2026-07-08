@@ -1,0 +1,135 @@
+<div class="page">
+  <app-header></app-header>
+
+  <div class="content-container">
+    <div class="form-card card animate-fade">
+      <h2 class="form-title">Register Department Technician</h2>
+      <p class="form-subtitle">Create a technician user account with auto-assigned department roles and escalation levels.</p>
+
+      <!-- Alert Boxes -->
+      <div class="alert alert-danger" *ngIf="submitError()">
+        <span>&#9888;</span>
+        <div class="alert-content">
+          <p>{{ submitError() }}</p>
+        </div>
+      </div>
+
+      <div class="alert alert-success" *ngIf="successMessage()">
+        <span>&#10003;</span>
+        <div class="alert-content">
+          <p>{{ successMessage() }}</p>
+        </div>
+      </div>
+
+      <form #employeeForm="ngForm" (submit)="employeeForm.valid && submit(); $event.preventDefault()" novalidate>
+        <!-- Name -->
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="name"
+            [ngModel]="name()"
+            (ngModelChange)="name.set($event)"
+            #nameField="ngModel"
+            [ngClass]="{ 'is-invalid': nameField.invalid && (nameField.touched || employeeForm.submitted) }"
+            placeholder="e.g. Alice Smith"
+            required />
+          <div class="invalid-feedback" *ngIf="nameField.invalid && (nameField.touched || employeeForm.submitted)">
+            <span>Full name is required.</span>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input
+            type="email"
+            class="form-control"
+            name="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            #emailField="ngModel"
+            [ngClass]="{ 'is-invalid': emailField.invalid && (emailField.touched || employeeForm.submitted) }"
+            placeholder="e.g. alice@company.com"
+            required
+            email />
+          <div class="invalid-feedback" *ngIf="emailField.invalid && (emailField.touched || employeeForm.submitted)">
+            <span *ngIf="emailField.errors?.['required']">Email address is required.</span>
+            <span *ngIf="emailField.errors?.['email']">Please enter a valid email address.</span>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Temporary Password</label>
+          <input
+            type="password"
+            class="form-control"
+            name="password"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            #passwordField="ngModel"
+            [ngClass]="{ 'is-invalid': passwordField.invalid && (passwordField.touched || employeeForm.submitted) }"
+            placeholder="Enter initial password"
+            minlength="8"
+            required />
+          <div class="invalid-feedback" *ngIf="passwordField.invalid && (passwordField.touched || employeeForm.submitted)">
+            <span *ngIf="passwordField.errors?.['required']">Password is required.</span>
+            <span *ngIf="passwordField.errors?.['minlength']">Password must be at least 8 characters long.</span>
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input
+            type="text"
+            class="form-control"
+            name="phone"
+            [ngModel]="phone()"
+            (ngModelChange)="phone.set($event)"
+            #phoneField="ngModel"
+            [ngClass]="{ 'is-invalid': phoneField.invalid && (phoneField.touched || employeeForm.submitted) }"
+            placeholder="e.g. +91 9999988888"
+            pattern="^\+?[0-9\s\-()]{10,20}$"
+            required />
+          <div class="invalid-feedback" *ngIf="phoneField.invalid && (phoneField.touched || employeeForm.submitted)">
+            <span *ngIf="phoneField.errors?.['required']">Phone number is required.</span>
+            <span *ngIf="phoneField.errors?.['pattern']">Please enter a valid phone number (min 10 digits).</span>
+          </div>
+        </div>
+
+        <!-- Department -->
+        <div class="form-group">
+          <label class="form-label">Department / Skill Category Alignment</label>
+          <select name="department" class="form-control" [ngModel]="department()" (ngModelChange)="department.set(+$event)">
+            <option [value]="1">Technical</option>
+            <option [value]="2">Finance</option>
+            <option [value]="3">HR</option>
+          </select>
+        </div>
+
+        <!-- Designation -->
+        <div class="form-group">
+          <label class="form-label">Designation / Role Tier</label>
+          <select name="designation" class="form-control" [ngModel]="designation()" (ngModelChange)="designation.set(+$event)">
+            <option [value]="1">Employee / Support Agent</option>
+            <option [value]="2">Team Lead / Tier 1 Esc</option>
+            <option [value]="3">Manager / Tier 2 Esc</option>
+            <option [value]="4">Senior Manager / Tier 3 Esc</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" [disabled]="submitting()" (click)="cancel()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+            <span *ngIf="submitting()">Registering...</span>
+            <span *ngIf="!submitting()">Register Technician</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

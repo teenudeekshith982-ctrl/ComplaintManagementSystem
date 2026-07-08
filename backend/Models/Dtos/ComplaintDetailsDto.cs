@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Enums;
+using ComplaintManagementSystem.Enums;
 
 namespace ComplaintManagementSystem.Models.Dtos;
 
@@ -17,4 +17,6 @@ public class ComplaintDetailsDto
     public DateTime? DueDate {get;set;}
     public int CreatedByUserId { get; set; }
     public int? AssignedEmployeeId { get; set; }
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; }
 }

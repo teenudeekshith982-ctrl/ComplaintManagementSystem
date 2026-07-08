@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Contexts;
+using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
@@ -39,9 +39,13 @@ public class EmployeeRepository : IEmployeeRepository
             {
                 Employee = e,
 
-                Load = _context.Complaints.Count(c =>
-                    c.EmployeeId == e.EmployeeId &&
-                    c.StatusId != (int)ComplaintStatusEnum.Resolved)
+                Load = _context.Complaints
+                    .Where(c => c.EmployeeId == e.EmployeeId && 
+                                c.StatusId != (int)ComplaintStatusEnum.Resolved && 
+                                c.StatusId != (int)ComplaintStatusEnum.Closed)
+                    .Sum(c => c.PriorityId == (int)ComplaintPriorityEnum.Critical ? 4 :
+                              c.PriorityId == (int)ComplaintPriorityEnum.High ? 3 :
+                              c.PriorityId == (int)ComplaintPriorityEnum.Medium ? 2 : 1)
             })
             .ToListAsync();
 
