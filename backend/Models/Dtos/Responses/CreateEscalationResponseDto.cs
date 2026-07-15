@@ -8,6 +8,12 @@ public class CreateEscalationResponseDto
 
     public string EscalationLevel { get; set; } = string.Empty;
 
+    public string Status { get; set; } = string.Empty;
+
+    public string RequestedBy { get; set; } = string.Empty;
+
+    public string CurrentAssignee { get; set; } = string.Empty;
+
     public string Reason { get; set; } = string.Empty;
 
     public DateTime EscalatedAt { get; set; }

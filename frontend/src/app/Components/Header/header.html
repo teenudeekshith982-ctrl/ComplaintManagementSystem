@@ -1,17 +1,17 @@
 <div class="header">
   <div class="header-main-bar">
-    <span class="logo" routerLink="/">&#9881; CMS Portal</span>
+    <span class="logo" routerLink="/"><span class="material-symbols-outlined">settings</span> CMS Portal</span>
     
     <div class="header-actions-mobile">
       <!-- Notification Bell for Mobile (always accessible) -->
       <div class="notification-bell-container mobile-bell">
         <button class="bell-btn" (click)="toggleNotifDropdown(); $event.stopPropagation()">
-          <span class="bell-icon">&#128276;</span>
+          <span class="bell-icon"><span class="material-symbols-outlined">notifications</span></span>
           <span class="bell-badge" *ngIf="unreadCount() > 0">{{ unreadCount() }}</span>
         </button>
       </div>
 
-      <!-- Hamburger Menu Button -->
+    
       <button class="hamburger-btn" (click)="toggleMenu()" [ngClass]="{ 'open': isMenuOpen() }" aria-label="Toggle navigation">
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
@@ -37,7 +37,7 @@
       <!-- Notification Bell for Desktop (hidden on mobile, handled in mobile-bell) -->
       <div class="notification-bell-container desktop-bell">
         <button class="bell-btn" (click)="toggleNotifDropdown(); $event.stopPropagation()">
-          <span class="bell-icon">&#128276;</span>
+          <span class="bell-icon"><span class="material-symbols-outlined">notifications</span></span>
           <span class="bell-badge" *ngIf="unreadCount() > 0">{{ unreadCount() }}</span>
         </button>
       </div>
@@ -45,42 +45,54 @@
       <!-- User details and logout -->
       <div class="user-meta-info">
         <span class="role-badge">{{ role() }}</span>
-        <span class="user-name">&#128100; {{ userName() }}</span>
+        <span class="user-name"><span class="material-symbols-outlined">person</span> {{ userName() }}</span>
       </div>
       <button class="logout-btn" (click)="logout(); isMenuOpen.set(false)">Logout</button>
     </div>
   </div>
 
   <!-- Notification Dropdown Panel (Relative/Absolute placement context) -->
-  <div class="notif-dropdown card" *ngIf="showNotifDropdown()">
+  @if(showNotifDropdown()){
+    <div class="notif-dropdown card">
     <div class="notif-dropdown-header">
       <h4>Notifications</h4>
-      <button class="mark-all-btn" *ngIf="unreadCount() > 0" (click)="markAllRead()">Mark all read</button>
+      @if(unreadCount()>0){
+        <button class="mark-all-btn" (click)="markAllRead()">Mark all read</button>
+      }
+      
     </div>
 
     <div class="notif-dropdown-list">
-      <div class="notif-item" 
-           *ngFor="let n of notifications()" 
-           [ngClass]="{ 'unread': !n.isRead }"
-           (click)="markRead(n.notificationId, n.relatedComplaintId)">
-        <p class="notif-message">{{ n.message }}</p>
-        <span class="notif-date">{{ n.createdAt | date:'short' }}</span>
-      </div>
+      @for(n of notifications(); track n.notificationId){
+        <div class="notif-item" 
+             [ngClass]="{ 'unread': !n.isRead }"
+             (click)="markRead(n.notificationId, n.relatedComplaintId)">
+          <p class="notif-message">{{ n.message }}</p>
+          <span class="notif-date">{{ n.createdAt | date:'short' }}</span>
+        </div>
+      }
 
-      <div class="notif-empty" *ngIf="notifications().length === 0">
-        <span class="empty-bell">&#128277;</span>
-        <p>No notifications yet</p>
-      </div>
+      @if(notifications().length==0){
+         <div class="notif-empty">
+          <span class="empty-bell"><span class="material-symbols-outlined">notifications_off</span></span>
+          <p>No notifications yet</p>
+        </div>
+      }
+     
     </div>
   </div>
+  }
+  
 </div>
 
 <!-- On-Screen Live Toast Banner Notification -->
 <div class="toast-banner-container" *ngIf="activeToast()">
   <div class="toast-card card animate-slide-in">
     <div class="toast-header">
-      <span class="toast-bell">&#128276; Live Update</span>
-      <button class="toast-close" (click)="dismissToast()">&times;</button>
+      <span class="toast-bell"><span class="material-symbols-outlined">notifications</span> Live Update</span>
+      <button class="toast-close" (click)="dismissToast()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
     <div class="toast-body">
       <p>{{ activeToast()?.message }}</p>

@@ -8,9 +8,10 @@ export class AdminService {
 
     constructor(private http: HttpClient) {}
 
-    getUsers(pageNumber = 1, pageSize = 10) {
+    getUsers(pageNumber = 1, pageSize = 10, excludeRole?: string) {
+        const excludeParam = excludeRole ? `&excludeRole=${excludeRole}` : '';
         return this.http.get<{ data: UserListItem[]; totalRecords: number; pageNumber: number; pageSize: number }>(
-            `${this.baseUrl}/Admin/users?pageNumber=${pageNumber}&pageSize=${pageSize}`
+            `${this.baseUrl}/Admin/users?pageNumber=${pageNumber}&pageSize=${pageSize}${excludeParam}`
         );
     }
 

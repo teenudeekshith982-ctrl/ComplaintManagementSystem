@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Models.Dtos;
+using ComplaintManagementSystem.Models.Dtos;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
 
@@ -70,9 +70,9 @@ public class FileStorageService : IFileStorageService
                 new FileUploadResult
                 {
                     FileName = file.FileName,
-
-                    FilePath =
-                        $"uploads/{folderName}/{uniqueFileName}"
+                    FilePath = $"uploads/{folderName}/{uniqueFileName}",
+                    ContentType = file.ContentType,
+                    BlobName = uniqueFileName
                 });
 
             _logger.LogInformation(
@@ -83,19 +83,40 @@ public class FileStorageService : IFileStorageService
         return uploadedFiles;
     }
 
+    public Task<Stream> DownloadFileAsync(string filePath)
+    {
+        var fullPath = Path.Combine(_environment.WebRootPath, filePath);
+        if (!System.IO.File.Exists(fullPath))
+        {
+            throw new FileNotFoundException("Physical file not found on server.");
+        }
+        return Task.FromResult<Stream>(new FileStream(fullPath, FileMode.Open, FileAccess.Read));
+    }
+
+    public Task<bool> DeleteFileAsync(string filePath)
+    {
+        var fullPath = Path.Combine(_environment.WebRootPath, filePath);
+        if (System.IO.File.Exists(fullPath))
+        {
+            System.IO.File.Delete(fullPath);
+            return Task.FromResult(true);
+        }
+        return Task.FromResult(false);
+    }
+
     private static void ValidateFile(
         IFormFile file)
     {
         if (file.Length == 0)
         {
             throw new BusinessRuleException(
-                "Empty file uploaded.");
+                "The uploaded file is empty. Please select a valid file with content.");
         }
 
         if (file.Length > 5 * 1024 * 1024)
         {
             throw new BusinessRuleException(
-                "File size cannot exceed 5 MB.");
+                "The selected file exceeds the maximum size limit of 5 MB. Please upload a smaller file.");
         }
 
         var extension =
@@ -105,7 +126,7 @@ public class FileStorageService : IFileStorageService
                 extension.ToLower()))
         {
             throw new BusinessRuleException(
-                $"File type {extension} is not allowed.");
+                $"The file type '{extension}' is not supported. Please upload a file with one of the allowed extensions: PDF, PNG, JPG, JPEG, DOC, or DOCX.");
         }
     }
 }

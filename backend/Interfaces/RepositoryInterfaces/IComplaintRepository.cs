@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Models;
+using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
 
 namespace ComplaintManagementSystem.Interfaces;
@@ -28,8 +28,5 @@ public interface IComplaintRepository
 
     Task<int> GetCountByStatusAsync(int statusId);
     
-    
-    
-    
-    
+    Task<List<Complaint>> GetResolvedOrClosedComplaintsAsync(int excludeId);
 }

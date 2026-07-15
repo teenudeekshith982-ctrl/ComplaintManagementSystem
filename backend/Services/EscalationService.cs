@@ -6,18 +6,17 @@ using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ComplaintManagementSystem.Services;
 
 public class EscalationService : IEscalationService
-{   
+{
     private readonly IEscalationRepository _escalationRepository;
     private readonly IComplaintRepository _complaintRepository;
     private readonly IComplaintHistoryRepository _historyRepository;
     private readonly IEmployeeRepository _employeeRepository;
     private readonly ILogger<EscalationService> _logger;
-    private readonly  IMapper _mapper;
+    private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
     private readonly ComplaintManagementSystemContext _context;
     private readonly INotificationService _notificationService;
@@ -43,446 +42,300 @@ public class EscalationService : IEscalationService
         _context = context;
         _notificationService = notificationService;
     }
-        
-        
-        public async Task<CreateEscalationResponseDto>
-    CreateEscalationAsync(
-        CreateEscalationRequestDto request)
-{   
-    
-    _logger.LogInformation(
-        "Creating escalation for ComplaintId {ComplaintId}",
-        request.ComplaintId);
 
-    int? EmployeeId = _currentUserService.GetEmployeeId();
-    
-    
-
-    var complaint = await _complaintRepository
-        .GetByIdAsync(request.ComplaintId);
-
-    if (complaint == null)
+    public async Task<CreateEscalationResponseDto> CreateEscalationAsync(CreateEscalationRequestDto request)
     {
-        _logger.LogError(
-            "Complaint not found. ComplaintId {ComplaintId}",
-            request.ComplaintId);
+        _logger.LogInformation("Creating escalation request for ComplaintId {ComplaintId}", request.ComplaintId);
 
-        throw new NotFoundException(
-            "Complaint not found");
-    }
-
-    if (complaint.EmployeeId != EmployeeId)
-    {
-        throw new UnauthorizedAccessException("You are not Authorised to Escalate The Complaint");
-    }
-    if (!Enum.IsDefined(
-            typeof(EscalationLevelEnum),
-            request.EscalationLevel))
-    {
-        _logger.LogError(
-            "Invalid escalation level {EscalationLevel}",
-            request.EscalationLevel);
-
-        throw new BadRequestException("Invalid escalation level");
-    }
-
-    if (complaint.StatusId ==
-        (int)ComplaintStatusEnum.Closed)
-    {
-        _logger.LogError(
-            "Cannot escalate closed complaint. ComplaintId {ComplaintId}",
-            request.ComplaintId);
-
-        throw new BadRequestException(
-            "Closed complaints cannot be escalated");
-    }
-
-    var latestEscalation =
-        await _escalationRepository
-            .GetLatestEscalationAsync(
-                request.ComplaintId);
-
-    EscalationLevelEnum expectedLevel;
-
-    if (latestEscalation == null)
-    {
-        expectedLevel =
-            EscalationLevelEnum.TeamLead;
-    }
-    else
-    {
-        expectedLevel =
-            (EscalationLevelEnum)
-                (latestEscalation.EscalatedLevelId + 1);
-    }
-
-    if (expectedLevel >
-        EscalationLevelEnum.SeniorManager)
-    {
-        _logger.LogError(
-            "Maximum escalation level reached for ComplaintId {ComplaintId}",
-            request.ComplaintId);
-
-        throw new BusinessRuleException("Maximum escalation level reached");
-    }
-    
-    var escalationOwner =
-        await GetEscalationOwnerAsync(
-            complaint,
-            expectedLevel);
-    
-    var oldEmployeeId =
-        complaint.EmployeeId;
-    
-    complaint.EmployeeId =
-        escalationOwner.EmployeeId;
-
-    await _complaintRepository
-        .UpdateAsync(complaint);
-
-    if (request.EscalationLevel != expectedLevel)
-    {
-        _logger.LogError(
-            "Invalid escalation sequence. Expected {ExpectedLevel}, Received {ReceivedLevel}",
-            expectedLevel,
-            request.EscalationLevel);
-
-        throw new BadRequestException(
-            $"Next escalation level must be {expectedLevel}");
-    }
-
-    var existingSameLevel = await _context.EscalatedComplaints
-        .AnyAsync(e => e.ComplaintId == request.ComplaintId
-            && e.EscalatedLevelId == (int)request.EscalationLevel);
-
-    if (existingSameLevel)
-    {
-        throw new ConflictException("This complaint has already been escalated at this level.");
-    }
-
-    var escalation =
-        new EscalatedComplaint
+        if (_currentUserService.GetRole() != RolesEnum.Employee.ToString())
         {
-            ComplaintId =
-                request.ComplaintId,
+            throw new UnauthorizedAccessException("Only the assigned employee is permitted to request an escalation for this complaint.");
+        }
 
-            Reason =
-                request.Reason,
+        int? employeeId = _currentUserService.GetEmployeeId();
 
-            EscalatedLevelId =
-                (int)request.EscalationLevel,
+        if (!employeeId.HasValue)
+        {
+            int userId = _currentUserService.GetUserId();
+            var employeeForUser = await _context.Employees
+                .FirstOrDefaultAsync(e => e.UserId == userId);
+            if (employeeForUser != null)
+            {
+                employeeId = employeeForUser.EmployeeId;
+            }
+        }
 
-            EscalatedAt =
-                DateTime.UtcNow
+        if (!employeeId.HasValue)
+        {
+            throw new UnauthorizedAccessException("The employee profile associated with your user account could not be found.");
+        }
+
+        var complaint = await _complaintRepository.GetByIdAsync(request.ComplaintId);
+        if (complaint == null)
+        {
+            throw new NotFoundException("The requested complaint could not be found.");
+        }
+
+        if (complaint.EmployeeId != employeeId)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to escalate this complaint because it is not assigned to you.");
+        }
+
+        var currentEmployee = await _employeeRepository.GetByIdAsync(employeeId.Value);
+        if (currentEmployee == null || !currentEmployee.IsActive)
+        {
+            throw new UnauthorizedAccessException("Your employee account is currently inactive. Please contact an administrator.");
+        }
+
+
+        if (complaint.StatusId == (int)ComplaintStatusEnum.Closed
+            || complaint.StatusId == (int)ComplaintStatusEnum.Resolved)
+        {
+            throw new BadRequestException("Complaints that are closed or resolved cannot be escalated.");
+        }
+
+        if (complaint.StatusId != (int)ComplaintStatusEnum.InProgress
+            && complaint.StatusId != (int)ComplaintStatusEnum.Reopened)
+        {
+            throw new BadRequestException("Only complaints that are currently in-progress or reopened can be escalated.");
+        }
+
+        bool hasPending = await _escalationRepository.HasPendingEscalationAsync(request.ComplaintId);
+        if (hasPending)
+        {
+            throw new ConflictException("A pending escalation request already exists for this complaint. Please wait for an administrator's decision.");
+        }
+
+        var existingEscalations = await _context.EscalatedComplaints
+            .Where(e => e.ComplaintId == request.ComplaintId)
+            .ToListAsync();
+
+        int nextLevelId = existingEscalations.Count + 1;
+        if (nextLevelId > (int)EscalationLevelEnum.SeniorManager)
+        {
+            throw new BadRequestException("This complaint has already reached the maximum allowed escalation level.");
+        }
+
+        var levelName = await _escalationRepository.GetByIdAsync(nextLevelId);
+
+        var escalation = new EscalatedComplaint
+        {
+            ComplaintId = request.ComplaintId,
+            EscalatedLevelId = nextLevelId,
+            RequestedById = employeeId.Value,
+            CurrentAssigneeId = employeeId.Value,
+            Reason = request.Reason,
+            EscalatedAt = DateTime.UtcNow,
+            Status = (int)EscalationStatusEnum.Pending
         };
 
-    escalation =
-        await _escalationRepository
-            .AddAsync(escalation);
+        escalation = await _escalationRepository.AddAsync(escalation);
 
-    _logger.LogInformation(
-        "Escalation created successfully. EscalationId {EscalationId}",
-        escalation.EscalatedId);
+        _logger.LogInformation("Escalation request created. EscalationId {EscalationId}", escalation.EscalatedId);
 
-    await _historyRepository
-        .AddAsync(
-            new ComplaintHistory
-            {
-                ComplaintId =
-                    complaint.ComplaintId,
+        await _historyRepository.AddAsync(new ComplaintHistory
+        {
+            ComplaintId = complaint.ComplaintId,
+            Action = "Escalation Requested",
+            Details = $"Employee requested escalation to {levelName}. Reason: {request.Reason}",
+            ChangedBy = _currentUserService.GetRole(),
+            CreatedAt = DateTime.UtcNow
+        });
 
-                Action =
-                    $"Escalated to {request.EscalationLevel} {escalationOwner.User.Name}",
+        var adminUsers = await _context.Users
+            .Where(u => u.Role == RolesEnum.Admin.ToString() && u.IsActive)
+            .ToListAsync();
 
-                Details =
-                    $"Escalated to {expectedLevel} and assigned to EmployeeId: {escalationOwner.User.Name}",
+        foreach (var admin in adminUsers)
+        {
+            await _notificationService.CreateAsync(
+                admin.UserId,
+                $"New escalation request for complaint \"{complaint.Title}\". Reason: {request.Reason}",
+                complaint.ComplaintId);
+        }
 
-                ChangedBy =
-                    _currentUserService
-                        .GetRole(),
+        return new CreateEscalationResponseDto
+        {
+            EscalationId = escalation.EscalatedId,
+            ComplaintId = escalation.ComplaintId,
+            EscalationLevel = levelName ?? "Level " + nextLevelId,
+            Status = "Pending",
+            RequestedBy = currentEmployee.User?.Name ?? "Employee",
+            CurrentAssignee = currentEmployee.User?.Name ?? "Employee",
+            Reason = escalation.Reason,
+            EscalatedAt = escalation.EscalatedAt
+        };
+    }
 
-                CreatedAt =
-                    DateTime.UtcNow
-            });
-
-    _logger.LogInformation(
-        "Complaint history added successfully for ComplaintId {ComplaintId}",
-        complaint.ComplaintId);
-
-    _logger.LogInformation(
-        "CreateEscalationAsync completed successfully for ComplaintId {ComplaintId}",
-        complaint.ComplaintId);
-
-    return new CreateEscalationResponseDto
+    public async Task AutoEscalateComplaintsAsync()
     {
-        EscalationId =
-            escalation.EscalatedId,
+        _logger.LogInformation("Auto escalation process started");
 
-        ComplaintId =
-            escalation.ComplaintId,
+        var complaints = await _complaintRepository.GetSlaBreachedComplaintsAsync();
 
-        EscalationLevel =
-            request.EscalationLevel
-                .ToString(),
-
-        Reason =
-            escalation.Reason,
-
-        EscalatedAt =
-            escalation.EscalatedAt
-    };
-}
-        public async Task AutoEscalateComplaintsAsync()
-    {
-        _logger.LogInformation(
-            "Auto escalation process started");
-    
-        var complaints =
-            await _complaintRepository
-                .GetSlaBreachedComplaintsAsync();
-    
         if (!complaints.Any())
         {
-            _logger.LogInformation(
-                "No SLA breached complaints found");
-    
+            _logger.LogInformation("No SLA breached complaints found");
             return;
         }
-    
+
         foreach (var complaint in complaints)
         {
             try
             {
-                var latestEscalation =
-                    await _escalationRepository
-                        .GetLatestEscalationAsync(
-                            complaint.ComplaintId);
-    
-                EscalationLevelEnum nextLevel;
-    
-                if (latestEscalation == null)
+                bool hasPending = await _escalationRepository.HasPendingEscalationAsync(complaint.ComplaintId);
+                if (hasPending)
                 {
-                    nextLevel =
-                        EscalationLevelEnum.TeamLead;
-                }
-                else
-                {
-                    nextLevel =
-                        (EscalationLevelEnum)
-                        (latestEscalation
-                            .EscalatedLevelId + 1);
-                }
-    
-                if (nextLevel >
-                    EscalationLevelEnum
-                        .SeniorManager)
-                {
-                    _logger.LogWarning(
-                        "Maximum escalation reached for ComplaintId {ComplaintId}",
-                        complaint.ComplaintId);
-    
+                    _logger.LogWarning("Skipping auto-escalation for ComplaintId {ComplaintId}: pending escalation exists", complaint.ComplaintId);
                     continue;
                 }
-                
-                var escalationOwner =
-                    await GetEscalationOwnerAsync(
-                        complaint,
-                        nextLevel);
-    
-                var oldEmployeeId =
-                    complaint.EmployeeId;
-    
-                complaint.EmployeeId =
-                    escalationOwner.EmployeeId;
 
-                await _complaintRepository
-                    .UpdateAsync(complaint);
-    
-                var escalation =
-                    new EscalatedComplaint
-                    {
-                        ComplaintId =
-                            complaint.ComplaintId,
-    
-                        EscalatedLevelId =
-                            (int)nextLevel,
-    
-                        Reason =
-                            "Automatic escalation due to SLA breach",
-    
-                        EscalatedAt =
-                            DateTime.UtcNow
-                    };
-    
-                await _escalationRepository
-                    .AddAsync(escalation);
-    
-                await _historyRepository
-                    .AddAsync(
-                        new ComplaintHistory
-                        {
-                            ComplaintId =
-                                complaint.ComplaintId,
-    
-                            Action = $"Escalated to {nextLevel.ToString()} {escalationOwner.User.Name} ",
-    
-                            Details =
-                                $"Auto Escalated to {nextLevel}",
-    
-                            ChangedBy =
-                                "System",
-    
-                            CreatedAt =
-                                DateTime.UtcNow
-                        });
-    
-                _logger.LogInformation(
-                    "Complaint {ComplaintId} auto escalated to {EscalationLevel}",
-                    complaint.ComplaintId,
-                    nextLevel);
+                if (complaint.StatusId == (int)ComplaintStatusEnum.Closed
+                    || complaint.StatusId == (int)ComplaintStatusEnum.Resolved)
+                {
+                    _logger.LogWarning("Skipping auto-escalation for ComplaintId {ComplaintId}: complaint is closed/resolved", complaint.ComplaintId);
+                    continue;
+                }
+
+                var existingEscalations = await _context.EscalatedComplaints
+                    .Where(e => e.ComplaintId == complaint.ComplaintId)
+                    .ToListAsync();
+
+                int nextLevelId = existingEscalations.Count + 1;
+                if (nextLevelId > (int)EscalationLevelEnum.SeniorManager)
+                {
+                    _logger.LogWarning("Maximum escalation reached for ComplaintId {ComplaintId}", complaint.ComplaintId);
+                    continue;
+                }
+
+                var levelName = await _escalationRepository.GetByIdAsync(nextLevelId);
+                int assigneeId = complaint.EmployeeId ?? 0;
+
+                var escalation = new EscalatedComplaint
+                {
+                    ComplaintId = complaint.ComplaintId,
+                    EscalatedLevelId = nextLevelId,
+                    RequestedById = assigneeId,
+                    CurrentAssigneeId = assigneeId,
+                    Reason = "Automatic escalation due to SLA breach",
+                    EscalatedAt = DateTime.UtcNow,
+                    Status = (int)EscalationStatusEnum.Pending
+                };
+
+                await _escalationRepository.AddAsync(escalation);
+
+                await _historyRepository.AddAsync(new ComplaintHistory
+                {
+                    ComplaintId = complaint.ComplaintId,
+                    Action = "Auto-Escalation Requested",
+                    Details = $"System auto-created escalation request to {levelName}. SLA breached.",
+                    ChangedBy = "System",
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                var adminUsers = await _context.Users
+                    .Where(u => u.Role == RolesEnum.Admin.ToString() && u.IsActive)
+                    .ToListAsync();
+
+                foreach (var admin in adminUsers)
+                {
+                    await _notificationService.CreateAsync(
+                        admin.UserId,
+                        $"Auto-escalation request for complaint \"{complaint.Title}\" due to SLA breach.",
+                        complaint.ComplaintId);
+                }
+
+                _logger.LogInformation("Complaint {ComplaintId} auto-escalation request created for {EscalationLevel}",
+                    complaint.ComplaintId, levelName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error auto escalating ComplaintId {ComplaintId}",
-                    complaint.ComplaintId);
+                _logger.LogError(ex, "Error auto-escalating ComplaintId {ComplaintId}", complaint.ComplaintId);
             }
         }
-    
-        _logger.LogInformation(
-            "Auto escalation process completed");
+
+        _logger.LogInformation("Auto escalation process completed");
     }
-        
-    private async Task<Employee>
-        GetEscalationOwnerAsync(
-            Complaint complaint,
-            EscalationLevelEnum level)
+
+    public async Task<PagedResponseDto<EscalationResponseDto>> GetEscalationsAsync(EscalationFilterDto filter)
     {
-        Employee? employee = null;
+        _logger.LogInformation("Getting escalated complaints");
 
-        switch (level)
-        {
-            case EscalationLevelEnum.TeamLead:
+        var (escalations, totalRecords) = await _escalationRepository.GetEscalationsAsync(filter);
 
-                employee =
-                    await _employeeRepository
-                        .GetTeamLeadByDepartmentAsync(
-                            complaint.CategoryId);
+        var response = escalations
+            .Select(e => new EscalationResponseDto
+            {
+                EscalatedId = e.EscalatedId,
+                ComplaintId = e.ComplaintId,
+                ComplaintTitle = e.Complaint!.Title,
+                Department = e.Complaint.Employee != null && e.Complaint.Employee.Department != null
+                    ? e.Complaint.Employee.Department.DepartmentName
+                    : "Unknown",
+                DepartmentId = e.Complaint.Employee != null ? e.Complaint.Employee.DepartmentId : 0,
+                AssignedTo = e.Complaint.Employee != null && e.Complaint.Employee.User != null
+                    ? e.Complaint.Employee.User.Name
+                    : "Unassigned",
+                EscalatedLevelId = e.EscalatedLevelId,
+                EscalationLevel = e.EscalatedLevel != null
+                    ? e.EscalatedLevel.LevelName
+                    : "Level " + e.EscalatedLevelId,
+                RequestedBy = e.RequestedBy != null && e.RequestedBy.User != null
+                    ? e.RequestedBy.User.Name
+                    : "Unknown",
+                RequestedById = e.RequestedById ?? 0,
+                CurrentAssignee = e.CurrentAssignee != null && e.CurrentAssignee.User != null
+                    ? e.CurrentAssignee.User.Name
+                    : "Unknown",
+                CurrentAssigneeId = e.CurrentAssigneeId ?? 0,
+                Reason = e.Reason,
+                EscalatedAt = e.EscalatedAt,
+                Status = e.Status == (int)EscalationStatusEnum.Accepted ? "Accepted" :
+                         e.Status == (int)EscalationStatusEnum.Rejected ? "Rejected" :
+                         "Pending"
+            })
+            .ToList();
 
-                break;
+        _logger.LogInformation("Retrieved {Count} escalations", response.Count);
 
-            case EscalationLevelEnum.Manager:
-
-                employee =
-                    await _employeeRepository
-                        .GetManagerAsync();
-
-                break;
-
-            case EscalationLevelEnum.SeniorManager:
-
-                employee =
-                    await _employeeRepository
-                        .GetSeniorManagerAsync();
-
-                break;
-        }
-
-        if (employee == null)
-        {
-            throw new NotFoundException(
-                $"No employee found for escalation level {level}");
-        }
-
-        return employee;
-    }
-    
-    public async Task<
-            PagedResponseDto<
-                EscalationResponseDto>>
-        GetEscalationsAsync(
-            EscalationFilterDto filter)
-    {
-        _logger.LogInformation(
-            "Getting escalated complaints");
-
-        var (
-                escalations,
-                totalRecords)
-            =
-            await _escalationRepository
-                .GetEscalationsAsync(
-                    filter);
-
-        var response =
-            escalations
-                .Select(e =>
-                    new EscalationResponseDto
-                    {
-                        EscalatedId =
-                            e.EscalatedId,
-
-                        ComplaintId =
-                            e.ComplaintId,
-
-                        ComplaintTitle =
-                            e.Complaint!.Title,
-
-                        Department =
-                            e.Complaint
-                                .Employee!
-                                .Department!
-                                .DepartmentName,
-
-                        AssignedTo =
-                            e.Complaint
-                                .Employee!
-                                .User!
-                                .Name,
-
-                        EscalationLevel =
-                            e.EscalatedLevel!
-                                .LevelName,
-
-                        Reason =
-                            e.Reason,
-
-                        EscalatedAt =
-                            e.EscalatedAt
-                    })
-                .ToList();
-
-        _logger.LogInformation(
-            "Retrieved {Count} escalations",
-            response.Count);
-
-        return new PagedResponseDto<
-            EscalationResponseDto>
+        return new PagedResponseDto<EscalationResponseDto>
         {
             Data = response,
-
-            PageNumber =
-                filter.PageNumber,
-
-            PageSize =
-                filter.PageSize,
-
-            TotalRecords =
-                totalRecords
+            PageNumber = filter.PageNumber,
+            PageSize = filter.PageSize,
+            TotalRecords = totalRecords
         };
     }
 
     public async Task<List<EscalationResponseDto>> GetComplaintEscalationsAsync(int complaintId)
     {
+        var complaint = await _context.Complaints
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.ComplaintId == complaintId);
+
+        if (complaint == null)
+        {
+            throw new NotFoundException("The requested complaint could not be found.");
+        }
+
+        var role = _currentUserService.GetRole();
+        var canView = role == RolesEnum.Admin.ToString()
+            || (role == RolesEnum.User.ToString()
+                && complaint.UserId == _currentUserService.GetUserId())
+            || (role == RolesEnum.Employee.ToString()
+                && complaint.EmployeeId == _currentUserService.GetEmployeeId());
+
+        if (!canView)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to view escalation details for this complaint.");
+        }
+
         var escalations = await _context.EscalatedComplaints
             .Include(e => e.EscalatedLevel)
-            .Include(e => e.Complaint)
-                .ThenInclude(c => c.Employee)
-                    .ThenInclude(emp => emp.User)
-            .Include(e => e.Complaint)
-                .ThenInclude(c => c.Employee)
-                    .ThenInclude(emp => emp.Department)
+            .Include(e => e.RequestedBy).ThenInclude(emp => emp.User)
+            .Include(e => e.CurrentAssignee).ThenInclude(emp => emp.User)
+            .Include(e => e.Complaint).ThenInclude(c => c.Employee).ThenInclude(emp => emp.User)
+            .Include(e => e.Complaint).ThenInclude(c => c.Employee).ThenInclude(emp => emp.Department)
             .Where(e => e.ComplaintId == complaintId)
             .OrderByDescending(e => e.EscalatedAt)
             .Select(e => new EscalationResponseDto
@@ -490,145 +343,203 @@ public class EscalationService : IEscalationService
                 EscalatedId = e.EscalatedId,
                 ComplaintId = e.ComplaintId,
                 ComplaintTitle = e.Complaint.Title,
-                Department = e.Complaint.Employee != null && e.Complaint.Employee.Department != null ? e.Complaint.Employee.Department.DepartmentName : "Unknown",
-                AssignedTo = e.Complaint.Employee != null && e.Complaint.Employee.User != null ? e.Complaint.Employee.User.Name : "Unassigned",
-                EscalationLevel = e.EscalatedLevel != null ? e.EscalatedLevel.LevelName : "Level " + e.EscalatedLevelId,
+                Department = e.Complaint.Employee != null && e.Complaint.Employee.Department != null
+                    ? e.Complaint.Employee.Department.DepartmentName : "Unknown",
+                DepartmentId = e.Complaint.Employee != null ? e.Complaint.Employee.DepartmentId : 0,
+                AssignedTo = e.Complaint.Employee != null && e.Complaint.Employee.User != null
+                    ? e.Complaint.Employee.User.Name : "Unassigned",
+                EscalatedLevelId = e.EscalatedLevelId,
+                EscalationLevel = e.EscalatedLevel != null
+                    ? e.EscalatedLevel.LevelName : "Level " + e.EscalatedLevelId,
+                RequestedBy = e.RequestedBy != null && e.RequestedBy.User != null
+                    ? e.RequestedBy.User.Name : "Unknown",
+                RequestedById = e.RequestedById ?? 0,
+                CurrentAssignee = e.CurrentAssignee != null && e.CurrentAssignee.User != null
+                    ? e.CurrentAssignee.User.Name : "Unknown",
+                CurrentAssigneeId = e.CurrentAssigneeId ?? 0,
                 Reason = e.Reason,
-                EscalatedAt = e.EscalatedAt
+                EscalatedAt = e.EscalatedAt,
+                Status = e.Status == (int)EscalationStatusEnum.Accepted ? "Accepted" :
+                         e.Status == (int)EscalationStatusEnum.Rejected ? "Rejected" :
+                         "Pending"
             })
             .ToListAsync();
 
         return escalations;
     }
 
-    public async Task ResolveEscalationAsync(int escalatedId, string action, string comments)
+    public async Task ResolveEscalationAsync(int escalatedId, EscalationActionRequestDto request)
     {
         var escalation = await _context.EscalatedComplaints
             .Include(e => e.Complaint)
+            .Include(e => e.RequestedBy)
+            .Include(e => e.CurrentAssignee)
             .FirstOrDefaultAsync(e => e.EscalatedId == escalatedId);
 
         if (escalation == null)
         {
-            throw new NotFoundException("Escalation not found.");
+            throw new NotFoundException("The requested escalation details could not be found.");
+        }
+
+        if (escalation.Status != (int)EscalationStatusEnum.Pending)
+        {
+            throw new ConflictException("This escalation request has already been processed and resolved.");
         }
 
         var complaint = escalation.Complaint;
         if (complaint == null)
         {
-            throw new NotFoundException("Associated complaint not found.");
+            throw new NotFoundException("The associated complaint for this escalation could not be found.");
         }
 
         int userId = _currentUserService.GetUserId();
         var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
-        string adminOrManagerName = user?.Name ?? "Manager";
+        string adminName = user?.Name ?? "Admin";
 
-        var actionLabel = action.Equals("Accept", StringComparison.OrdinalIgnoreCase) ? "Escalation Accepted" : "Escalation Declined";
-        var alreadyActioned = await _context.ComplaintHistories
-            .AnyAsync(h => h.ComplaintId == complaint.ComplaintId
-                && h.Action == actionLabel);
-
-        if (alreadyActioned)
+        var targetEmployee = await _employeeRepository.GetByIdAsync(request.EmployeeId);
+        if (targetEmployee == null || !targetEmployee.IsActive)
         {
-            throw new ConflictException("This escalation has already been actioned.");
+            throw new BadRequestException("The selected employee is either inactive or does not exist in the system.");
         }
 
-        if (action.Equals("ReassignBack", StringComparison.OrdinalIgnoreCase))
+        string levelName = await _escalationRepository.GetByIdAsync(escalation.EscalatedLevelId)
+            ?? "Level " + escalation.EscalatedLevelId;
+
+        if (request.Action.Equals("Accept", StringComparison.OrdinalIgnoreCase))
         {
-            var previousAssigneeHistory = await _context.ComplaintHistories
-                .Where(h => h.ComplaintId == complaint.ComplaintId && h.Action.Contains("Assigned to employee"))
-                .OrderByDescending(h => h.CreatedAt)
-                .Skip(1)
-                .FirstOrDefaultAsync();
-
-            Employee? targetEmployee = null;
-            if (previousAssigneeHistory != null)
+            EmployeeDesignationEnum requiredDesignation;
+            switch ((EscalationLevelEnum)escalation.EscalatedLevelId)
             {
-                var employees = await _context.Employees.Include(e => e.User).ToListAsync();
-                foreach (var emp in employees)
-                {
-                    if (emp.User != null && previousAssigneeHistory.Action.Contains(emp.User.Name))
-                    {
-                        targetEmployee = emp;
-                        break;
-                    }
-                }
+                case EscalationLevelEnum.TeamLead:
+                    requiredDesignation = EmployeeDesignationEnum.TeamLead;
+                    break;
+                case EscalationLevelEnum.Manager:
+                    requiredDesignation = EmployeeDesignationEnum.Manager;
+                    break;
+                case EscalationLevelEnum.SeniorManager:
+                    requiredDesignation = EmployeeDesignationEnum.SeniorManager;
+                    break;
+                default:
+                    throw new BadRequestException("The specified escalation level is invalid.");
             }
 
-            if (targetEmployee == null)
+            if (targetEmployee.Designation != requiredDesignation)
             {
-                var employeesInCategory = await _employeeRepository.GetLeastLoadedEmployeesAsync(complaint.CategoryId);
-                if (employeesInCategory.Any())
-                {
-                    targetEmployee = employeesInCategory.First();
-                }
+                throw new BadRequestException(
+                    $"The selected employee must have the designation of {requiredDesignation} to be assigned at this escalation level.");
             }
 
-            if (targetEmployee != null)
+            if (requiredDesignation == EmployeeDesignationEnum.Employee || requiredDesignation == EmployeeDesignationEnum.TeamLead)
             {
-                complaint.EmployeeId = targetEmployee.EmployeeId;
-                complaint.StatusId = (int)ComplaintStatusEnum.Assigned;
-                await _complaintRepository.UpdateAsync(complaint);
-
-                await _historyRepository.AddAsync(new ComplaintHistory
+                if (targetEmployee.DepartmentId != complaint.CategoryId)
                 {
-                    ComplaintId = complaint.ComplaintId,
-                    Action = $"Escalation Declined - Reassigned",
-                    Details = $"Escalation declined by {adminOrManagerName}. Reassigned back to employee: {targetEmployee.User?.Name}. Feedback: {comments}",
-                    ChangedBy = _currentUserService.GetRole(),
-                    CreatedAt = DateTime.UtcNow
-                });
-
-                // Notifications
-                await _notificationService.CreateAsync(
-                    targetEmployee.UserId,
-                    $"Escalation for complaint \"{complaint.Title}\" has been declined by {adminOrManagerName} and reassigned back to you. Comments: {comments}",
-                    complaint.ComplaintId);
-
-                await _notificationService.CreateAsync(
-                    complaint.UserId,
-                    $"Escalation for your complaint \"{complaint.Title}\" was declined and has been reassigned to {targetEmployee.User?.Name}.",
-                    complaint.ComplaintId);
+                    throw new BadRequestException("The selected employee must belong to the same department as the complaint.");
+                }
             }
             else
             {
-                throw new BadRequestException("Could not find a valid employee to reassign back to.");
+                var managementDept = await _context.Departments.FirstOrDefaultAsync(d => d.DepartmentName == "Management");
+                int managementDeptId = managementDept?.DepartmentId ?? 4;
+                if (targetEmployee.DepartmentId != managementDeptId)
+                {
+                    throw new BadRequestException("The selected manager or senior manager must belong to the Management department.");
+                }
             }
-        }
-        else if (action.Equals("Accept", StringComparison.OrdinalIgnoreCase))
-        {
+
+            escalation.Status = (int)EscalationStatusEnum.Accepted;
+
+            complaint.EmployeeId = targetEmployee.EmployeeId;
+            complaint.StatusId = (int)ComplaintStatusEnum.Assigned;
+
+            await _context.SaveChangesAsync();
+
             await _historyRepository.AddAsync(new ComplaintHistory
             {
                 ComplaintId = complaint.ComplaintId,
-                Action = "Escalation Accepted",
-                Details = $"Escalation accepted by {adminOrManagerName}. Comments: {comments}",
-                ChangedBy = _currentUserService.GetRole(),
+                Action = $"Escalation Accepted to {levelName}",
+                Details = $"Escalation accepted by {adminName}. Complaint reassigned to {targetEmployee.User?.Name} ({requiredDesignation}). Comments: {request.Comments}",
+                ChangedBy = RolesEnum.Admin.ToString(),
                 CreatedAt = DateTime.UtcNow
             });
 
-            // Notifications
             await _notificationService.CreateAsync(
-                complaint.UserId,
-                $"Escalation for your complaint \"{complaint.Title}\" has been accepted by {adminOrManagerName}. Comments: {comments}",
+                targetEmployee.UserId,
+                $"Escalation for complaint \"{complaint.Title}\" was accepted. Complaint is now assigned to you. Comments: {request.Comments}",
                 complaint.ComplaintId);
 
-            if (complaint.EmployeeId.HasValue)
-            {
-                var employee = await _context.Employees
-                    .Include(e => e.User)
-                    .FirstOrDefaultAsync(e => e.EmployeeId == complaint.EmployeeId.Value);
+            await _notificationService.CreateAsync(
+                complaint.UserId,
+                $"Escalation for your complaint \"{complaint.Title}\" was accepted. It has been escalated to {levelName}. Comments: {request.Comments}",
+                complaint.ComplaintId);
 
-                if (employee != null)
+            if (escalation.RequestedById != targetEmployee.EmployeeId)
+            {
+                await _notificationService.CreateAsync(
+                    (await _context.Employees.FirstOrDefaultAsync(e => e.EmployeeId == escalation.RequestedById))?.UserId ?? 0,
+                    $"Your escalation request for complaint \"{complaint.Title}\" was accepted and escalated to {levelName}.",
+                    complaint.ComplaintId);
+            }
+        }
+        else if (request.Action.Equals("Reject", StringComparison.OrdinalIgnoreCase))
+        {
+            var expectedDesignation = escalation.RequestedBy?.Designation ?? EmployeeDesignationEnum.Employee;
+            if (targetEmployee.Designation != expectedDesignation)
+            {
+                throw new BadRequestException("Upon rejecting the escalation, the complaint must be reassigned to an active employee belonging to the same department with the same designation.");
+            }
+
+            if (expectedDesignation == EmployeeDesignationEnum.Employee || expectedDesignation == EmployeeDesignationEnum.TeamLead)
+            {
+                if (targetEmployee.DepartmentId != complaint.CategoryId)
                 {
-                    await _notificationService.CreateAsync(
-                        employee.UserId,
-                        $"Escalation for complaint \"{complaint.Title}\" has been accepted. It is assigned to you. Comments: {comments}",
-                        complaint.ComplaintId);
+                    throw new BadRequestException("The selected employee must belong to the same department as the complaint.");
                 }
             }
+            else
+            {
+                var managementDept = await _context.Departments.FirstOrDefaultAsync(d => d.DepartmentName == "Management");
+                int managementDeptId = managementDept?.DepartmentId ?? 4;
+                if (targetEmployee.DepartmentId != managementDeptId)
+                {
+                    throw new BadRequestException("The selected manager or senior manager must belong to the Management department.");
+                }
+            }
+
+            escalation.Status = (int)EscalationStatusEnum.Rejected;
+
+            complaint.EmployeeId = targetEmployee.EmployeeId;
+            complaint.StatusId = (int)ComplaintStatusEnum.Assigned;
+
+            await _context.SaveChangesAsync();
+
+            await _historyRepository.AddAsync(new ComplaintHistory
+            {
+                ComplaintId = complaint.ComplaintId,
+                Action = "Escalation Rejected",
+                Details = $"Escalation rejected by {adminName}. Complaint reassigned to {targetEmployee.User?.Name} ({targetEmployee.Designation}). Comments: {request.Comments}",
+                ChangedBy = RolesEnum.Admin.ToString(),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _notificationService.CreateAsync(
+                targetEmployee.UserId,
+                $"Escalation for complaint \"{complaint.Title}\" was rejected. Complaint is now assigned to you. Comments: {request.Comments}",
+                complaint.ComplaintId);
+
+            await _notificationService.CreateAsync(
+                complaint.UserId,
+                $"Escalation for your complaint \"{complaint.Title}\" was rejected. It has been reassigned. Comments: {request.Comments}",
+                complaint.ComplaintId);
         }
         else
         {
-            throw new BadRequestException("Invalid escalation resolution action.");
+            throw new BadRequestException("The specified resolution action is invalid. It must be either 'Accept' or 'Reject'.");
         }
+    }
+
+    public async Task<int> GetPendingEscalationCountAsync()
+    {
+        return await _context.EscalatedComplaints
+            .CountAsync(e => e.Status == (int)EscalationStatusEnum.Pending);
     }
 }

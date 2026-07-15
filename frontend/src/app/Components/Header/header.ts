@@ -79,10 +79,8 @@ export class Header {
   markRead(notificationId: number, relatedComplaintId?: number) {
     this.notificationService.markAsRead(notificationId).subscribe({
       next: () => {
-        // Refresh notifications
         this.notificationService.loadInitialNotifications();
         
-        // Navigate if related complaint is present
         if (relatedComplaintId) {
           this.showNotifDropdown.set(false);
           this.router.navigate(['/complaints', relatedComplaintId]);
@@ -111,9 +109,8 @@ export class Header {
   }
 
   logout() {
-    // Terminate live sockets on logout
     this.notificationService.stopHubConnection();
-    this.toastService.success("Loggedout Succesfully");
+    this.toastService.success("Logged out Successfully");
     this.authService.logout();
   }
 }

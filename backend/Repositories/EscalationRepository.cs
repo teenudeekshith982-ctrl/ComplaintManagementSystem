@@ -31,6 +31,13 @@ public class EscalationRepository : IEscalationRepository
             .OrderByDescending(e => e.EscalatedAt)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<bool> HasPendingEscalationAsync(int complaintId)
+    {
+        return await _context.EscalatedComplaints
+            .AnyAsync(e => e.ComplaintId == complaintId
+                && e.Status == (int)Enums.EscalationStatusEnum.Pending);
+    }
     
     public async Task<EscalatedComplaint> AddAsync(
         EscalatedComplaint escalation)
@@ -50,8 +57,9 @@ public class EscalationRepository : IEscalationRepository
         var query =
             _context.EscalatedComplaints
                 .Include(e => e.EscalatedLevel)
-                .Include(e => e.Complaint)
-                .ThenInclude(c => c.Employee)
+                .Include(e => e.RequestedBy)
+                .ThenInclude(e => e.User)
+                .Include(e => e.CurrentAssignee)
                 .ThenInclude(e => e.User)
                 .Include(e => e.Complaint)
                 .ThenInclude(c => c.Employee)
@@ -83,6 +91,13 @@ public class EscalationRepository : IEscalationRepository
 
                 e.Complaint!.Title.Contains(
                     filter.SearchTerm));
+        }
+
+        if (filter.Status.HasValue)
+        {
+            query = query.Where(e =>
+                e.Status ==
+                filter.Status.Value);
         }
 
         if (filter.FromDate.HasValue)

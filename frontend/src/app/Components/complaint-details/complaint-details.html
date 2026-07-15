@@ -62,6 +62,20 @@
             <h4>Description</h4>
             <p>{{ complaint()?.description }}</p>
           </div>
+
+          <!-- AI Summary Card -->
+          <div class="ai-summary-box animate-fade" *ngIf="aiSummary() || loadingSummary()" style="margin-top: 1.5rem; padding: 1.25rem; border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px dashed rgba(6, 182, 212, 0.3);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: #22d3ee; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.95rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.2rem;">psychology</span>
+              AI Core Summary
+            </div>
+            <div *ngIf="loadingSummary()" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; color: var(--text-secondary);">
+              <span class="spinner-btn" style="border-top-color: #22d3ee;"></span> Summarizing complaint details...
+            </div>
+            <p *ngIf="!loadingSummary() && aiSummary()" class="text-sm text-secondary" style="margin: 0; line-height: 1.5; white-space: pre-line;">
+              {{ aiSummary() }}
+            </p>
+          </div>
         </div>
 
         <!-- Attachments Card -->
@@ -70,14 +84,14 @@
           <div class="attachment-list" *ngIf="complaint()?.attachments?.length; else noAttachments">
             <div class="attachment-item" *ngFor="let a of complaint()?.attachments">
               <div class="attachment-info">
-                <span class="attachment-icon">&#128196;</span>
+                <span class="attachment-icon"><span class="material-symbols-outlined">description</span></span>
                 <div class="attachment-meta">
                   <span class="attachment-name">{{ a.fileName }}</span>
                   <span class="attachment-date">Uploaded At: {{ a.uploadedAt | date:'short' }}</span>
                 </div>
               </div>
               <button class="btn btn-secondary btn-sm" (click)="downloadAttachment(a.attachmentId, a.fileName)">
-                &#8595; Download
+                <span class="material-symbols-outlined">download</span> Download
               </button>
             </div>
           </div>
@@ -106,6 +120,37 @@
             <p class="empty-text">No tracking history found.</p>
           </ng-template>
         </div>
+
+        <!-- AI Similar Complaints Card (visible to Admin and Employee) -->
+        <div class="card similar-complaints-card animate-fade" *ngIf="role() === 'Admin' || role() === 'Employee'">
+          <h3 class="section-title" style="display: flex; align-items: center; gap: 0.5rem; color: #3b82f6;">
+            <span class="material-symbols-outlined">analytics</span>
+            AI Similar Complaints
+          </h3>
+          <div *ngIf="loadingSimilar()" style="display: flex; align-items: center; gap: 0.5rem; padding: 1.5rem; justify-content: center; color: var(--text-secondary);">
+            <span class="spinner-btn" style="border-top-color: #3b82f6;"></span> Searching database for matching issues...
+          </div>
+          <div *ngIf="!loadingSimilar() && similarComplaints().length === 0" class="empty-text" style="padding: 1.5rem;">
+            No similar historic complaints found in the database.
+          </div>
+          <div class="similar-list" *ngIf="!loadingSimilar() && similarComplaints().length > 0" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+            <div class="similar-item" *ngFor="let item of similarComplaints()" style="padding: 1rem; border-radius: var(--radius-md); background: rgba(59, 130, 246, 0.03); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="font-weight-bold" style="font-size: 0.95rem; color: var(--text-primary);">#{{ item.complaintId }}: {{ item.complaintTitle }}</span>
+                <span class="badge badge-escalated" style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2);">{{ item.similarity }} Match</span>
+              </div>
+              <div style="font-size: 0.85rem; display: flex; gap: 1rem; color: var(--text-secondary);">
+                <span>Status: <span class="badge" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">{{ item.status }}</span></span>
+              </div>
+              <div style="font-size: 0.88rem; line-height: 1.4; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 0.6rem; border-radius: var(--radius-sm); border-left: 3px solid #3b82f6;">
+                <strong>Resolution History:</strong> {{ item.resolutionSummary }}
+              </div>
+              <button type="button" class="btn btn-secondary btn-xs" style="align-self: flex-end; margin-top: 0.25rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;" (click)="viewSimilarTicket(item.complaintId)">
+                <span class="material-symbols-outlined" style="font-size: 0.9rem;">open_in_new</span> View Full Ticket
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Right Column: Role Actions Panel and Comments -->
@@ -113,11 +158,96 @@
         <!-- Role Specific Actions Panel -->
         <div class="card actions-card">
           <h3 class="section-title">Manage Complaint</h3>
+
+          <!-- Escalation Status (visible to all roles) -->
+          <div class="escalation-status-section" *ngIf="latestEscalationStatus()">
+            <div class="escalation-status-box" *ngIf="latestEscalationStatus() === 'Accepted'">
+              <span class="material-symbols-outlined">check_circle</span>
+              Escalation Accepted
+            </div>
+            <div class="escalation-status-box escalation-rejected" *ngIf="latestEscalationStatus() === 'Rejected'">
+              <span class="material-symbols-outlined">cancel</span>
+              Escalation Rejected
+            </div>
+            <div class="escalation-status-box escalation-pending" *ngIf="latestEscalationStatus() === 'Pending'">
+              <span class="material-symbols-outlined">hourglass_top</span>
+              Escalation Pending
+            </div>
+          </div>
           
           <!-- Admin Actions -->
           <div class="actions-panel" *ngIf="role() === 'Admin'">
+            <!-- AI Category Validation (Admin only) -->
+            <div class="action-section ai-validation-box animate-fade" *ngIf="aiCategoryVal() || loadingCategoryVal()" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: var(--radius-md); background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.2);">
+              <label class="form-label text-success" style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: #34d399;">
+                <span class="material-symbols-outlined">verified</span> AI Category Validation
+              </label>
+              <div *ngIf="loadingCategoryVal()" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); padding: 0.5rem 0;">
+                <span class="spinner-btn" style="border-top-color: #10b981;"></span> Validating category...
+              </div>
+              <div *ngIf="!loadingCategoryVal() && aiCategoryVal()" style="font-size: 0.88rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+                  <span>Selected: <strong style="color: var(--text-primary);">{{ complaint()?.categoryName }}</strong></span>
+                  <span>AI Suggested: <strong style="color: #34d399;">{{ aiCategoryVal()?.suggestedCategory }}</strong></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <span class="text-muted">Confidence:</span>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #34d399; font-size: 0.75rem;">{{ aiCategoryVal()?.confidence }}</span>
+                </div>
+                <p class="text-muted" style="font-size: 0.85rem; margin: 0 0 0.75rem; line-height: 1.4;">
+                  <strong>Reason:</strong> {{ aiCategoryVal()?.reason }}
+                </p>
+                <div *ngIf="complaint()?.categoryName !== aiCategoryVal()?.suggestedCategory" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: var(--radius-sm);">
+                  <span class="text-danger" style="font-size: 0.8rem; font-weight: 500;">Warning: Selected category does not match AI recommendation.</span>
+                  <button type="button" class="btn btn-danger btn-xs" style="width: 100%;" (click)="updateComplaintCategory(aiCategoryVal()?.suggestedCategory === 'Technical' ? 1 : aiCategoryVal()?.suggestedCategory === 'Finance' ? 2 : 3)">
+                    Reassign Category to {{ aiCategoryVal()?.suggestedCategory }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Priority Recommendation (Admin only) -->
+            <div class="action-section ai-priority-box animate-fade" *ngIf="aiPriorityRec() || loadingPriorityRec()" style="margin-bottom: 1.5rem; padding: 1rem; border-radius: var(--radius-md); background: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.2);">
+              <label class="form-label text-warning" style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: #fbbf24;">
+                <span class="material-symbols-outlined">recommend</span> AI Priority Recommendation
+              </label>
+              <div *ngIf="loadingPriorityRec()" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); padding: 0.5rem 0;">
+                <span class="spinner-btn" style="border-top-color: #f59e0b;"></span> Generating recommendations...
+              </div>
+              <div *ngIf="!loadingPriorityRec() && aiPriorityRec()" style="font-size: 0.88rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+                  <span>Priority: <strong style="color: #fbbf24;">{{ aiPriorityRec()?.priority }}</strong></span>
+                  <span>SLA: <strong style="color: #fbbf24;">{{ aiPriorityRec()?.suggestedSla }}</strong></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <span class="text-muted">Confidence:</span>
+                  <span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #fbbf24; font-size: 0.75rem;">{{ aiPriorityRec()?.confidence }}</span>
+                </div>
+                <p class="text-muted" style="font-size: 0.85rem; margin: 0 0 0.75rem; line-height: 1.4;">
+                  <strong>Reason:</strong> {{ aiPriorityRec()?.reason }}
+                </p>
+                <button type="button" class="btn btn-warning btn-xs" style="width: 100%; color: #0f172a;" (click)="applyAIRecommendedPriority(aiPriorityRec()!.priority)">
+                  Apply Recommended Priority
+                </button>
+              </div>
+            </div>
+
+            <!-- Resolve Escalation (if pending) -->
+            <div class="action-section" *ngIf="hasPendingEscalation()" style="border: 1px solid var(--border-color-glow); padding: 1rem; border-radius: var(--radius-md); background: rgba(245, 158, 11, 0.05); margin-bottom: 1.5rem;">
+              <label class="form-label text-warning" style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-warning); font-weight: 600;">
+                <span class="material-symbols-outlined">warning</span> Pending Escalation Resolution
+              </label>
+              <p class="text-sm text-secondary" style="margin: 0.5rem 0 1rem; font-size: 0.88rem; line-height: 1.4;">
+                This ticket has a pending escalation request. Choose to Accept (escalate to next level) or Reject (reassign to same designation).
+              </p>
+              <div class="flex-row gap-sm" style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-success btn-sm w-full" style="flex: 1;" (click)="openResolveEscalationModal('Accept')">Accept</button>
+                <button class="btn btn-danger btn-sm w-full" style="flex: 1;" (click)="openResolveEscalationModal('Reject')">Reject</button>
+              </div>
+            </div>
+
             <!-- Step 1: Assign Priority -->
-            <div class="action-section">
+            <div class="action-section" *ngIf="!complaint()?.priority && !hasPendingEscalation()">
               <label class="form-label">Assign Priority & Due Date</label>
               <div class="flex-row">
                 <select class="form-control" [value]="selectedPriority()" (change)="selectedPriority.set(+$any($event.target).value)">
@@ -131,7 +261,7 @@
             </div>
 
             <!-- Step 2: Assign Employee -->
-            <div class="action-section" *ngIf="complaint()?.priorityName || complaint()?.priority">
+            <div class="action-section" *ngIf="(complaint()?.priorityName || complaint()?.priority) && !hasPendingEscalation()">
               <label class="form-label">Assign Employee</label>
               <div class="flex-row gap-sm">
                 <select class="form-control" [value]="selectedEmployeeId()" (change)="selectedEmployeeId.set(+$any($event.target).value)">
@@ -151,6 +281,16 @@
             <p class="info-text text-center text-muted" *ngIf="!complaint()?.priorityName && !complaint()?.priority">
               Set priority before employee assignment can be made.
             </p>
+
+            <!-- Manual Category Override (Admin only) -->
+            <div class="action-section" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+              <label class="form-label">Category Override</label>
+              <div class="flex-row">
+                <select class="form-control" [value]="currentCategoryId()" (change)="updateComplaintCategory(+$any($event.target).value)">
+                  <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <!-- Employee Actions -->
@@ -166,9 +306,19 @@
                 Mark as Resolved
               </button>
 
-              <!-- Escalate (if not closed/resolved) -->
-              <button class="btn btn-danger w-full" *ngIf="complaint()?.status !== 'Closed' && complaint()?.status !== 'Resolved'" [disabled]="submittingAction()" (click)="showEscalationModal.set(true)">
-                Escalate Complaint
+              <!-- Escalate (only if canEscalate) -->
+              <button class="btn btn-danger w-full" *ngIf="canEscalate" [disabled]="submittingAction()" (click)="showEscalationModal.set(true)">
+                Escalate to {{ nextEscalationLabel() }}
+              </button>
+
+              <!-- Pending escalation -->
+              <button class="btn btn-warning w-full" *ngIf="hasPendingEscalation()" disabled>
+                Escalation Pending Admin Review
+              </button>
+
+              <!-- Max level reached -->
+              <button class="btn btn-secondary w-full" *ngIf="isMaxLevelReached() && !hasPendingEscalation()" disabled>
+                Maximum Escalation Level Reached
               </button>
             </div>
             <p class="empty-text text-center text-muted" *ngIf="complaint()?.status === 'Closed' || complaint()?.status === 'Resolved'">
@@ -229,7 +379,7 @@
     <div class="content-container flex-center">
       <div class="spinner" *ngIf="loading() && !error()"></div>
       <div class="alert alert-danger max-w-md" *ngIf="error()">
-        <span>&#9888;</span>
+        <span class="material-symbols-outlined">error</span>
         <div class="alert-content">
           <p>{{ error() }}</p>
           <button class="btn btn-secondary btn-sm mt-sm" (click)="loadDetails()">Retry</button>
@@ -241,16 +391,131 @@
   <!-- Escalation Modal Overlay -->
   <div class="modal-overlay" *ngIf="showEscalationModal()">
     <div class="modal-card animate-fade">
-      <h3 class="modal-title">&#9888; Escalate Complaint</h3>
-      <p class="modal-subtitle">Briefly describe the reason for escalating this complaint to a supervisor.</p>
-      
-      <div class="form-group">
-        <textarea class="form-control" rows="4" placeholder="Enter reason (e.g. requires senior technician tools, parts out of stock, specialized approval required)..." [ngModel]="escalationReason()" (ngModelChange)="escalationReason.set($event)"></textarea>
+      <!-- Modal Header -->
+      <div class="modal-header-row">
+        <h3 class="modal-title modal-title-warn">
+          <span class="material-symbols-outlined modal-icon">warning</span>
+          Escalate Complaint
+        </h3>
       </div>
 
+      <!-- Complaint Summary -->
+      <div class="modal-info-box">
+        <div class="info-row">
+          <span class="info-label">Ticket:</span>
+          <span class="info-value">#{{ complaintId }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Title:</span>
+          <span class="info-value">{{ complaint()?.title }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status:</span>
+          <span class="info-value badge badge-progress">{{ complaint()?.status }}</span>
+        </div>
+      </div>
+
+      <!-- Escalation Target -->
+      <div class="modal-target-box">
+        <span class="material-symbols-outlined">arrow_upward</span>
+        <div>
+          <strong>Escalating to:</strong> Level {{ nextEscalationLevel() }} &mdash; {{ nextEscalationLabel() }}
+        </div>
+      </div>
+
+      <p class="modal-desc-text">
+        Your request will be sent to the admin for review. The admin will decide whether to accept or reject this escalation.
+      </p>
+
+      <!-- Reason -->
+      <div class="form-group">
+        <label class="form-label">Reason for Escalation <span class="required">*</span></label>
+        <textarea class="form-control" rows="4"
+                  placeholder="Explain why this complaint needs to be escalated to a supervisor. For example:&#10;- Requires specialized tools or parts&#10;- Need senior technician expertise&#10;- Cannot proceed without management approval"
+                  [ngModel]="escalationReason()" (ngModelChange)="escalationReason.set($event)"></textarea>
+      </div>
+
+      <!-- Footer -->
       <div class="modal-footer">
         <button class="btn btn-secondary" [disabled]="submittingAction()" (click)="showEscalationModal.set(false)">Cancel</button>
-        <button class="btn btn-danger" [disabled]="submittingAction() || !escalationReason().trim()" (click)="submitEscalation()">Submit Escalation</button>
+        <button class="btn btn-danger" [disabled]="submittingAction() || !escalationReason().trim()" (click)="submitEscalation()">
+          <span class="spinner-btn" *ngIf="submittingAction()"></span>
+          Submit Escalation Request
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resolve Escalation Modal Overlay (for Admin to resolve) -->
+  <div class="modal-overlay" *ngIf="showResolveModal()">
+    <div class="modal-card animate-fade">
+      <!-- Modal Header -->
+      <div class="modal-header-row">
+        <h3 class="modal-title" [ngClass]="resolveAction() === 'Accept' ? 'text-success' : 'text-danger'">
+          <span class="material-symbols-outlined modal-icon">{{ resolveAction() === 'Accept' ? 'check_circle' : 'cancel' }}</span>
+          {{ resolveAction() === 'Accept' ? 'Accept Escalation' : 'Reject Escalation' }}
+        </h3>
+      </div>
+
+      <!-- Escalation Info -->
+      <div class="modal-info-box" style="background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; font-size: 0.95rem; border: 1px solid var(--border-color);">
+        <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span class="info-label" style="color: var(--text-secondary); font-weight: 500;">Requested By:</span>
+          <span class="info-value" style="font-weight: 600;">{{ pendingEscalation()?.requestedBy }}</span>
+        </div>
+        <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span class="info-label" style="color: var(--text-secondary); font-weight: 500;">Current Assignee:</span>
+          <span class="info-value" style="font-weight: 600;">{{ pendingEscalation()?.currentAssignee }}</span>
+        </div>
+        <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span class="info-label" style="color: var(--text-secondary); font-weight: 500;">Reason:</span>
+          <span class="info-value" style="color: var(--text-primary); text-align: right; max-width: 70%; word-break: break-word;">{{ pendingEscalation()?.reason }}</span>
+        </div>
+      </div>
+
+      <!-- Action Description -->
+      <div class="modal-description" [ngClass]="resolveAction() === 'Accept' ? 'desc-accept' : 'desc-reject'" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; font-size: 0.9rem; line-height: 1.5; border: 1px solid transparent;" [style.border-color]="resolveAction() === 'Accept' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'" [style.background]="resolveAction() === 'Accept' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)'">
+        <span class="material-symbols-outlined" [style.color]="resolveAction() === 'Accept' ? 'var(--color-success)' : 'var(--color-danger)'">{{ resolveAction() === 'Accept' ? 'trending_up' : 'swap_horiz' }}</span>
+        <span *ngIf="resolveAction() === 'Accept'">Complaint will be escalated to <strong>{{ pendingEscalation()?.escalationLevel }}</strong> and reassigned accordingly.</span>
+        <span *ngIf="resolveAction() === 'Reject'">Complaint will be reassigned to an active employee from the same department with the same designation.</span>
+      </div>
+
+      <!-- Employee Select -->
+      <div class="form-group">
+        <label class="form-label">
+          {{ resolveAction() === 'Accept' ? 'Select Target Employee' : 'Select Employee' }}
+        </label>
+        <div class="spinner-sm" *ngIf="loadingEligibleEmployees()"></div>
+        <select class="form-control" *ngIf="!loadingEligibleEmployees()"
+                [ngModel]="resolveEmployeeId()" (ngModelChange)="resolveEmployeeId.set(+$event)">
+          <option [ngValue]="0">-- Select Employee --</option>
+          <option *ngFor="let emp of eligibleEmployees()" [ngValue]="emp.employeeId">
+            {{ emp.name }} ({{ emp.designation }})
+          </option>
+        </select>
+        <p class="text-muted text-sm" *ngIf="!loadingEligibleEmployees() && eligibleEmployees().length === 0">
+          No eligible employees found for this action.
+        </p>
+      </div>
+
+      <!-- Comments -->
+      <div class="form-group">
+        <label class="form-label">Decision Comments <span class="required">*</span></label>
+        <textarea class="form-control" rows="3"
+                  [placeholder]="resolveAction() === 'Accept' ? 'Explain why this escalation is being approved...' : 'Explain why this escalation is being rejected...'"
+                  [ngModel]="resolveComments()" (ngModelChange)="resolveComments.set($event)"></textarea>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" [disabled]="submittingAction()" (click)="showResolveModal.set(false)">Cancel</button>
+        <button class="btn"
+                [ngClass]="resolveAction() === 'Accept' ? 'btn-success' : 'btn-danger'"
+                [disabled]="submittingAction() || !resolveComments().trim() || resolveEmployeeId() === 0"
+                (click)="submitResolveAction()">
+          <span class="spinner-btn" *ngIf="submittingAction()"></span>
+          {{ resolveAction() === 'Accept' ? 'Confirm Accept' : 'Confirm Reject' }}
+        </button>
       </div>
     </div>
   </div>

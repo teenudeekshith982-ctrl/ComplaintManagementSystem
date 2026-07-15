@@ -9,14 +9,14 @@
 
     <!-- Alert Banners -->
     <div class="alert alert-danger" *ngIf="errorMessage()">
-      <span>&#9888;</span>
+      <span class="material-symbols-outlined">error</span>
       <div class="alert-content">
         <p>{{ errorMessage() }}</p>
       </div>
     </div>
 
     <div class="alert alert-success" *ngIf="successMessage()">
-      <span>&#10003;</span>
+      <span class="material-symbols-outlined">check_circle</span>
       <div class="alert-content">
         <p>{{ successMessage() }}</p>
       </div>
@@ -37,13 +37,13 @@
 
         <div class="tabs-list">
           <button class="tab-btn" [ngClass]="{ 'active': activeTab() === 'view' }" (click)="activeTab.set('view'); errorMessage.set(null); successMessage.set(null)">
-            &#128100; Profile Details
+            <span class="material-symbols-outlined">person</span> Profile Details
           </button>
           <button class="tab-btn" [ngClass]="{ 'active': activeTab() === 'edit' }" (click)="activeTab.set('edit'); errorMessage.set(null); successMessage.set(null)">
-            &#9998; Edit Account Details
+            <span class="material-symbols-outlined">edit</span> Edit Account Details
           </button>
           <button class="tab-btn" [ngClass]="{ 'active': activeTab() === 'password' }" (click)="activeTab.set('password'); errorMessage.set(null); successMessage.set(null)">
-            &#128274; Security Settings
+            <span class="material-symbols-outlined">lock</span> Security Settings
           </button>
         </div>
       </div>

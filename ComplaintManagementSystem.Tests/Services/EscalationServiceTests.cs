@@ -53,8 +53,16 @@ public class EscalationServiceTests
         var request = new CreateEscalationRequestDto
         {
             ComplaintId = 1,
-            EscalationLevel = EscalationLevelEnum.TeamLead
+            Reason = "Test reason"
         };
+
+        _currentUserServiceMock
+            .Setup(x => x.GetRole())
+            .Returns(RolesEnum.Employee.ToString());
+
+        _currentUserServiceMock
+            .Setup(x => x.GetEmployeeId())
+            .Returns(1);
 
         _complaintRepositoryMock
             .Setup(x => x.GetByIdAsync(1))
@@ -64,7 +72,7 @@ public class EscalationServiceTests
 
         await act.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("Complaint not found");
+            .WithMessage("Complaint not found.");
     }
 
     [Fact]
@@ -73,18 +81,38 @@ public class EscalationServiceTests
         var complaint = new Complaint
         {
             ComplaintId = 1,
-            StatusId = (int)ComplaintStatusEnum.Closed
+            StatusId = (int)ComplaintStatusEnum.Closed,
+            EmployeeId = 1
         };
 
         var request = new CreateEscalationRequestDto
         {
             ComplaintId = 1,
-            EscalationLevel = EscalationLevelEnum.TeamLead
+            Reason = "Test reason"
         };
+
+        _currentUserServiceMock
+            .Setup(x => x.GetRole())
+            .Returns(RolesEnum.Employee.ToString());
+
+        _currentUserServiceMock
+            .Setup(x => x.GetEmployeeId())
+            .Returns(1);
 
         _complaintRepositoryMock
             .Setup(x => x.GetByIdAsync(1))
             .ReturnsAsync(complaint);
+
+        var employee = new Employee
+        {
+            EmployeeId = 1,
+            IsActive = true,
+            Designation = EmployeeDesignationEnum.Employee
+        };
+
+        _employeeRepositoryMock
+            .Setup(x => x.GetByIdAsync(1))
+            .ReturnsAsync(employee);
 
         Func<Task> act = () => _service.CreateEscalationAsync(request);
 
@@ -93,37 +121,53 @@ public class EscalationServiceTests
     }
 
     [Fact]
-    public async Task CreateEscalationAsync_ShouldThrowNotFoundException_WhenTeamLeadNotFound()
+    public async Task CreateEscalationAsync_ShouldThrowConflictException_WhenPendingEscalationExists()
     {
         var complaint = new Complaint
         {
             ComplaintId = 1,
             CategoryId = 1,
-            StatusId = (int)ComplaintStatusEnum.InProgress
+            StatusId = (int)ComplaintStatusEnum.InProgress,
+            EmployeeId = 1
         };
 
         var request = new CreateEscalationRequestDto
         {
             ComplaintId = 1,
-            EscalationLevel = EscalationLevelEnum.TeamLead
+            Reason = "Test escalation reason"
         };
+
+        _currentUserServiceMock
+            .Setup(x => x.GetRole())
+            .Returns(RolesEnum.Employee.ToString());
+
+        _currentUserServiceMock
+            .Setup(x => x.GetEmployeeId())
+            .Returns(1);
 
         _complaintRepositoryMock
             .Setup(x => x.GetByIdAsync(1))
             .ReturnsAsync(complaint);
 
-        _escalationRepositoryMock
-            .Setup(x => x.GetLatestEscalationAsync(1))
-            .ReturnsAsync((EscalatedComplaint?)null);
+        var employee = new Employee
+        {
+            EmployeeId = 1,
+            IsActive = true,
+            Designation = EmployeeDesignationEnum.Employee
+        };
 
         _employeeRepositoryMock
-            .Setup(x => x.GetTeamLeadByDepartmentAsync(1))
-            .ReturnsAsync((Employee?)null);
+            .Setup(x => x.GetByIdAsync(1))
+            .ReturnsAsync(employee);
+
+        _escalationRepositoryMock
+            .Setup(x => x.HasPendingEscalationAsync(1))
+            .ReturnsAsync(true);
 
         Func<Task> act = () => _service.CreateEscalationAsync(request);
 
         await act.Should()
-            .ThrowAsync<NotFoundException>();
+            .ThrowAsync<ConflictException>();
     }
 
     [Fact]

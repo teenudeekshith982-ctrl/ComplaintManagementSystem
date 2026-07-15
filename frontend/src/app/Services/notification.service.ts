@@ -30,15 +30,15 @@ export class NotificationService {
 
     private hubConnection: HubConnection | null = null;
 
-    // Signals for State Management
+    
     notifications = signal<NotificationItem[]>([]);
     unreadCount = signal(0);
     
-    // Toast signal to display active popups on-screen
+    
     activeToast = signal<{ message: string; complaintId?: number } | null>(null);
 
     constructor() {
-        // Automatically fetch notifications and initiate connection if logged in
+
         if (this.authService.isLoggedIn()) {
             this.loadInitialNotifications();
             this.startHubConnection();
@@ -67,13 +67,13 @@ export class NotificationService {
         return this.http.patch(`${this.baseUrl}/read-all`, {});
     }
 
-    // SignalR Sockets connection lifecycle
+    
     startHubConnection() {
         if (this.hubConnection) return;
 
         const token = localStorage.getItem('token');
         if (!token) return;
-
+            
         this.hubConnection = new HubConnectionBuilder()
             .withUrl(this.hubUrl, {
                 accessTokenFactory: () => token

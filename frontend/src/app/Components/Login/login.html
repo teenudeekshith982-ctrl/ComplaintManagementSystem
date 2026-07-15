@@ -16,10 +16,15 @@
           placeholder="e.g. user@example.com"
           required
           email>
-        <div class="invalid-feedback" *ngIf="emailField.invalid && (emailField.touched || loginForm.submitted)">
-          <span *ngIf="emailField.errors?.['required']">Email address is required.</span>
-          <span *ngIf="emailField.errors?.['email']">Please enter a valid email address.</span>
+        @if(emailField.invalid && (emailField.touched || loginForm.submitted)){ 
+        <div class="invalid-feedback">
+          @if(emailField.errors?.['required']){
+            <span>Email address is required.</span>
+          }@else if (emailField.errors?.['email']){
+            <span>Please enter a valid email address.</span>
+          }
         </div>
+      }
       </div>
 
       <div class="form-group">
@@ -33,14 +38,21 @@
           [ngClass]="{ 'is-invalid': passwordField.invalid && (passwordField.touched || loginForm.submitted) }"
           placeholder="Enter your password"
           required>
-        <div class="invalid-feedback" *ngIf="passwordField.invalid && (passwordField.touched || loginForm.submitted)">
-          <span>Password is required.</span>
-        </div>
+        @if(passwordField.invalid && (passwordField.touched  || loginForm.submitted)){
+          <div class="invalid-feedback">
+            @if(passwordField.errors?.['required']){
+              <span>Password is required.</span>
+            }
+          </div>
+        }
       </div>
 
       <button [disabled]="loading()" type="submit" class="btn btn-primary w-full">
-        <span *ngIf="loading()">Signing in...</span>
-        <span *ngIf="!loading()">Sign In</span>
+        @if(loading()){
+          <span>Signing in...</span>
+        }@else{
+          <span>Sign In</span>
+        }
       </button>
     </form>
 

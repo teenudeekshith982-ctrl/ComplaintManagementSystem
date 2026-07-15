@@ -8,6 +8,8 @@ public class EscalationFilterDto
 
     public string? SearchTerm { get; set; }
 
+    public int? Status { get; set; }
+
     public DateTime? FromDate { get; set; }
 
     public DateTime? ToDate { get; set; }

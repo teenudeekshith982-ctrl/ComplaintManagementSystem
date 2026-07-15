@@ -70,6 +70,18 @@ public class AnalyticsRepository : IAnalyticsRepository
             / totalComplaints * 100;
     }
 
+    var unassignedTicketsCount = await _context.Complaints
+        .CountAsync(c => c.EmployeeId == null 
+                         && c.StatusId != (int)ComplaintStatusEnum.Resolved 
+                         && c.StatusId != (int)ComplaintStatusEnum.Closed
+                         && c.StatusId != (int)ComplaintStatusEnum.Cancelled);
+
+    var openEscalationsCount = await _context.EscalatedComplaints
+        .CountAsync(e => e.Complaint != null 
+                         && e.Complaint.StatusId != (int)ComplaintStatusEnum.Resolved 
+                         && e.Complaint.StatusId != (int)ComplaintStatusEnum.Closed
+                         && e.Complaint.StatusId != (int)ComplaintStatusEnum.Cancelled);
+
     return new DashboardSummaryDto
     {
         TotalComplaints =
@@ -92,7 +104,11 @@ public class AnalyticsRepository : IAnalyticsRepository
         SlaBreachRate =
             Math.Round(
                 slaBreachRate,
-                2)
+                2),
+
+        UnassignedTicketsCount = unassignedTicketsCount,
+
+        OpenEscalationsCount = openEscalationsCount
     };
 }
     public async Task<List<ComplaintStatusAnalyticsDto>>
@@ -132,7 +148,7 @@ public class AnalyticsRepository : IAnalyticsRepository
 
         for (int i = monthsCount - 1; i >= 0; i--)
         {
-            var firstDayOfMonth = new DateTime(today.Year, today.Month, 1).AddMonths(-i);
+            var firstDayOfMonth = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
             var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddTicks(-1);
 
             var submittedCount = await _context.Complaints

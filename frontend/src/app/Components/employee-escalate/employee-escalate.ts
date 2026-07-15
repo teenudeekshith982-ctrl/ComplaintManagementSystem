@@ -5,7 +5,7 @@ import { Header } from '../Header/header';
 import { EscalationService } from '../../Services/escalation.service';
 import { ComplaintService } from '../../Services/complaint.service';
 import { AuthService } from '../../Services/auth.service';
-import { tap, catchError, of, map } from 'rxjs';
+import { catchError, of, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgFor, NgIf, NgClass } from '@angular/common';
 import { ComplaintListItem } from '../../models/complaint.model';
@@ -23,14 +23,13 @@ export class EmployeeEscalate {
   private router = inject(Router);
 
   complaintId = signal<number | null>(null);
-  escalationLevel = signal(1);
   reason = signal('');
   submitting = signal(false);
   submitError = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
-  private complaints$ = this.complaintService.getAllComplaints({ status: 3 }).pipe( // Only InProgress can be manually escalated
-    map(res => res.complaints || []),
+  private complaints$ = this.complaintService.getAllComplaints({ pageSize: 100 }).pipe(
+    map(res => (res.complaints || []).filter(c => c.status === 'InProgress' || c.status === 'Reopened')),
     catchError(() => of([] as ComplaintListItem[]))
   );
 
@@ -40,6 +39,11 @@ export class EmployeeEscalate {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
     }
+  }
+
+  onComplaintSelected(complaintId: number) {
+    this.complaintId.set(complaintId);
+    this.submitError.set(null);
   }
 
   submit() {
@@ -52,13 +56,12 @@ export class EmployeeEscalate {
     this.successMessage.set(null);
     this.escalationService.createEscalation({
       complaintId: Number(this.complaintId()!),
-      escalationLevel: Number(this.escalationLevel()),
       reason: this.reason()
     }).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.successMessage.set('Complaint escalated successfully.');
-        setTimeout(() => this.router.navigate(['/employee/complaints']), 1500);
+        this.successMessage.set('Escalation request submitted successfully. Waiting for admin review.');
+        setTimeout(() => this.router.navigate(['/employee/complaints']), 2000);
       },
       error: (err: any) => {
         this.submitting.set(false);

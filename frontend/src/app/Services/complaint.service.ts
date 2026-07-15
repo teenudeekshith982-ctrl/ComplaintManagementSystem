@@ -120,6 +120,13 @@ export class ComplaintService {
         );
     }
 
+    updateCategory(id: number, categoryId: number) {
+        return this.http.patch<{ message: string }>(
+            `${this.baseUrl}/Complaints/${id}/category`,
+            { categoryId }
+        );
+    }
+
     assignComplaint(id: number) {
         return this.http.patch<{ isAssigned: boolean; message: string; employees?: { employeeId: number; employeeName: string }[] }>(
             `${this.baseUrl}/Complaints/${id}/assign`,

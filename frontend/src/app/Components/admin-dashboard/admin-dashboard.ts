@@ -22,7 +22,7 @@ const EMPTY_DASHBOARD: AdminDashboardData = {
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [Header, NgClass, NgFor, NgIf, DatePipe],
+  imports: [Header, NgClass, NgIf, DatePipe],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })

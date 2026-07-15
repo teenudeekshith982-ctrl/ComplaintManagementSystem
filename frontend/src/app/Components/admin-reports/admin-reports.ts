@@ -2,12 +2,14 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { Header } from '../Header/header';
 import { AuthService } from '../../Services/auth.service';
-import { AnalyticsService, DashboardSummaryResponse, ChartDataPoint } from '../../Services/analytics.service';
+import { AnalyticsService} from '../../Services/analytics.service';
 import { NgFor, NgIf, NgClass, KeyValuePipe, DecimalPipe } from '@angular/common';
+import { DashboardSummaryResponse } from '../../models/DashboardSummaryResponse.model';
+import { ChartDataPoint } from '../../models/ChartDataPoint.model';
 
 @Component({
   selector: 'app-admin-reports',
-  imports: [Header, NgFor, NgIf, NgClass, KeyValuePipe, DecimalPipe],
+  imports: [Header, NgFor, NgIf, DecimalPipe],
   templateUrl: './admin-reports.html',
   styleUrl: './admin-reports.css',
 })
@@ -62,7 +64,7 @@ export class AdminReports implements OnInit {
     // 1. By Status
     this.analyticsService.getComplaintsByStatus().subscribe({
       next: (res) => {
-        const mapped = Object.entries(res).map(([name, value]) => ({ name, value }));
+        const mapped = res.map(item => ({ name: item.status, value: item.count }));
         this.statusData.set(mapped);
       }
     });
@@ -70,7 +72,7 @@ export class AdminReports implements OnInit {
     // 2. By Category
     this.analyticsService.getComplaintsByCategory().subscribe({
       next: (res) => {
-        const mapped = Object.entries(res).map(([name, value]) => ({ name, value }));
+        const mapped = res.map(item => ({ name: item.category, value: item.count }));
         this.categoryData.set(mapped);
       }
     });
@@ -78,7 +80,7 @@ export class AdminReports implements OnInit {
     // 3. Monthly Trend
     this.analyticsService.getMonthlyTrend(6).subscribe({
       next: (res) => {
-        const mapped = Object.entries(res).map(([name, value]) => ({ name, value }));
+        const mapped = res.map(item => ({ name: item.monthName, value: item.submittedCount }));
         this.trendData.set(mapped);
         this.loading.set(false);
       },

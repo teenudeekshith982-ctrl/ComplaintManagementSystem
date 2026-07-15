@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Azure.Storage.Blobs;
+using Azure.Identity;
 using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Hubs;
 using ComplaintManagementSystem.Interfaces;
@@ -7,12 +9,21 @@ using ComplaintManagementSystem.Mappings;
 using ComplaintManagementSystem.Middlewares;
 using ComplaintManagementSystem.Repositories;
 using ComplaintManagementSystem.Services;
+using ComplaintManagementSystem.Models.Dtos.Requests;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var vaultUri = builder.Configuration["AzureKeyVault:VaultUri"];
+if (!string.IsNullOrEmpty(vaultUri) && vaultUri != "https://YOUR_KEY_VAULT_NAME.vault.azure.net/")
+{
+    builder.Configuration.AddAzureKeyVault(
+        new Uri(vaultUri), 
+        new DefaultAzureCredential());
+}
 
 
 
@@ -95,12 +106,40 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 #endregion
 
 #region Services
+builder.Services.AddHttpClient();
+builder.Services.Configure<AISettings>(builder.Configuration.GetSection("AI"));
+
+var aiProvider = builder.Configuration["AI:Provider"];
+if (aiProvider == "Groq")
+{
+    builder.Services.AddScoped<IAIService, GroqProvider>();
+}
+
 builder.Services.AddScoped<ITokenService,TokenService>();
 builder.Services.AddScoped<IAuthService,AuthService>();
 builder.Services.AddScoped<IComplaintService, ComplaintService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IFileStorageService, AzureBlobStorageService>();
+
+var storageConnectionString = builder.Configuration["AzureBlobStorage:ConnectionString"];
+if (!string.IsNullOrEmpty(storageConnectionString) && storageConnectionString != "YOUR_AZURE_CONNECTION_STRING_HERE")
+{
+    builder.Services.AddSingleton(x => new BlobServiceClient(storageConnectionString));
+}
+else
+{
+    var serviceUri = builder.Configuration["AzureBlobStorage:ServiceUri"];
+    if (!string.IsNullOrEmpty(serviceUri))
+    {
+        builder.Services.AddSingleton(x => new BlobServiceClient(new Uri(serviceUri), new DefaultAzureCredential()));
+    }
+    else
+    {
+        builder.Services.AddSingleton(x => new BlobServiceClient("UseDevelopmentStorage=true"));
+    }
+}
+
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEscalationService, EscalationService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
@@ -115,6 +154,8 @@ builder.Services.AddAutoMapper(
     typeof(ApplicationMapperProfile));
 
 #endregion
+
+
 
 
 var app = builder.Build();

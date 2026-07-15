@@ -1,4 +1,4 @@
-﻿namespace ComplaintManagementSystem.Models.Dtos;
+namespace ComplaintManagementSystem.Models.Dtos;
 
 public class DashboardSummaryDto
 {
@@ -14,4 +14,7 @@ public class DashboardSummaryDto
 
     public double SlaBreachRate { get; set; }
 
+    public int UnassignedTicketsCount { get; set; }
+
+    public int OpenEscalationsCount { get; set; }
 }

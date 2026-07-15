@@ -56,12 +56,12 @@ public class NotificationService : INotificationService
 
         if (notification == null)
         {
-            throw new NotFoundException("Notification not found");
+            throw new NotFoundException("The requested notification could not be found.");
         }
 
         if (notification.UserId != userId)
         {
-            throw new UnauthorizedAccessException("You cannot modify this notification");
+            throw new UnauthorizedAccessException("You do not have permission to modify this notification.");
         }
 
         if (notification.IsRead)

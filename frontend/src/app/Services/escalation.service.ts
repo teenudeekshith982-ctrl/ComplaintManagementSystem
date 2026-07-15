@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { CreateEscalationRequest, EscalationItem, EscalationActionRequest, PagedEscalationResponse } from '../models/escalation.model';
+import { CreateEscalationRequest, EscalationItem, EscalationActionRequest, PagedEscalationResponse, EligibleEmployee, NextLevelResponse } from '../models/escalation.model';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -13,7 +13,7 @@ export class EscalationService {
         let params = new HttpParams()
             .set('pageNumber', pageNumber.toString())
             .set('pageSize', pageSize.toString());
-            
+
         return this.http.get<PagedEscalationResponse>(
             `${this.baseUrl}/Escalation`, { params }
         );
@@ -26,14 +26,36 @@ export class EscalationService {
     }
 
     createEscalation(data: CreateEscalationRequest) {
-        return this.http.post<{ escalationId: number; complaintId: number; escalationLevel: string; reason: string; escalatedAt: string }>(
+        return this.http.post<{ escalationId: number; complaintId: number; escalationLevel: string; status: string; requestedBy: string; currentAssignee: string; reason: string; escalatedAt: string }>(
             `${this.baseUrl}/Escalation`, data
         );
     }
 
-    resolveEscalation(id: number, action: string, comments: string) {
+    resolveEscalation(id: number, request: EscalationActionRequest) {
         return this.http.post<{ message: string }>(
-            `${this.baseUrl}/Escalation/${id}/action`, { action, comments }
+            `${this.baseUrl}/Escalation/${id}/action`, request
+        );
+    }
+
+    getEligibleEmployees(escalationId: number, action: string): Observable<EligibleEmployee[]> {
+        let params = new HttpParams()
+            .set('complaintId', escalationId.toString())
+            .set('action', action);
+
+        return this.http.get<EligibleEmployee[]>(
+            `${this.baseUrl}/Escalation/eligible-employees`, { params }
+        );
+    }
+
+    getNextLevel(complaintId: number): Observable<NextLevelResponse> {
+        return this.http.get<NextLevelResponse>(
+            `${this.baseUrl}/Escalation/next-level/${complaintId}`
+        );
+    }
+
+    getPendingCount(): Observable<{ count: number }> {
+        return this.http.get<{ count: number }>(
+            `${this.baseUrl}/Escalation/pending-count`
         );
     }
 }

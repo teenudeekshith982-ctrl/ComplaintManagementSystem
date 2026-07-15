@@ -65,7 +65,7 @@ public class ComplaintService : IComplaintService
 
         if (!categoryExists)
         {
-            throw new NotFoundException("Category not found.");
+            throw new NotFoundException("The specified complaint category could not be found.");
         }
         
         int userId =
@@ -78,7 +78,7 @@ public class ComplaintService : IComplaintService
 
         if (recentDuplicate)
         {
-            throw new ConflictException("You have already submitted this complaint. Please wait before submitting again.");
+            throw new ConflictException("You have recently submitted this complaint. Please wait a moment before trying to submit it again.");
         }
 
         var user = await _userRepository.GetByIdAsync(userId);
@@ -124,6 +124,12 @@ public class ComplaintService : IComplaintService
                                 file.FilePath,
                             
                             FileName = file.FileName,
+
+                            ContentType =
+                                file.ContentType,
+
+                            BlobName =
+                                file.BlobName,
                             
                             UploadedAt = DateTime.UtcNow
                         })
@@ -261,15 +267,14 @@ public class ComplaintService : IComplaintService
                 typeof(ComplaintPriorityEnum),
                 request.Priority))
         {
-            throw new BadRequestException("Invalid priority");
+            throw new BadRequestException("The selected priority level is invalid. Please select a valid option.");
         }
         
         var complaint = await _complaintRepository.GetByIdAsync(complaintId);
         if (complaint == null)
         {
             _logger.LogError("Complaint not found this id to update {complaintId}", complaintId);
-            throw new NotFoundException("Complaint not Found");
-            
+            throw new NotFoundException("The requested complaint could not be found.");
         }
         
         int priorityId = (int)request.Priority;
@@ -280,7 +285,7 @@ public class ComplaintService : IComplaintService
         if (sla == null)
         {
             _logger.LogError("Priority {PriorityId} does not exist", priorityId);
-            throw new NotFoundException("Sla Configuration Not Found");
+            throw new NotFoundException("The SLA configuration for the selected priority could not be found.");
         }
 
         complaint.DueDate = complaint.CreatedAt.AddHours(sla.ResolutionHours);
@@ -307,7 +312,47 @@ public class ComplaintService : IComplaintService
             $"Priority for your complaint \"{complaint.Title}\" has been set to {request.Priority}.",
             complaintId);
     }
-    
+
+    public async Task UpdateCategoryAsync(
+        int complaintId,
+        UpdateCategoryRequestDto request)
+    {
+        _logger.LogInformation("Updating category of complaint {ComplaintId} to {CategoryId}", complaintId, request.CategoryId);
+
+        var complaint = await _complaintRepository.GetByIdAsync(complaintId);
+        if (complaint == null)
+        {
+            throw new NotFoundException("The requested complaint could not be found.");
+        }
+
+        bool categoryExists = await _categoryRepository.ExistsAsync(request.CategoryId);
+        if (!categoryExists)
+        {
+            throw new NotFoundException("The specified complaint category could not be found.");
+        }
+
+        int oldCategoryId = complaint.CategoryId;
+        complaint.CategoryId = request.CategoryId;
+
+        // Reset assignment if category department changes
+        if (oldCategoryId != request.CategoryId)
+        {
+            complaint.EmployeeId = null;
+            complaint.StatusId = (int)ComplaintStatusEnum.Open;
+        }
+
+        await _complaintRepository.UpdateAsync(complaint);
+
+        await _historyRepository.AddAsync(new ComplaintHistory
+        {
+            ComplaintId = complaintId,
+            Action = "Category Updated",
+            Details = $"Category changed from {oldCategoryId} to {request.CategoryId}. Employee assignment reset.",
+            ChangedBy = "Admin",
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
     public async Task<AssignComplaintResponseDto>
         AssignComplaintAsync(int complaintId)
     {
@@ -321,18 +366,18 @@ public class ComplaintService : IComplaintService
 
         if (complaint == null)
         {
-            throw new NotFoundException("Complaint not found");
+            throw new NotFoundException("The requested complaint could not be found.");
         }
 
         if (complaint.PriorityId == null)
         {
             throw new BadRequestException(
-                "Priority must be assigned before assigning employee");
+                "A priority level must be assigned to the complaint before an employee can be assigned.");
         }
 
         if (complaint.EmployeeId != null)
         {
-            throw new BadRequestException("Complaint already assigned");
+            throw new BadRequestException("This complaint has already been assigned to an employee.");
         }
 
         var employees =
@@ -341,7 +386,7 @@ public class ComplaintService : IComplaintService
 
         if (!employees.Any())
         {
-            throw new NotFoundException("No active employees found");
+            throw new NotFoundException("No active employees are currently available in the selected category for assignment.");
         }
 
         // Multiple least-loaded employees
@@ -429,7 +474,7 @@ public class ComplaintService : IComplaintService
     if (complaint == null)
     {
         throw new NotFoundException(
-            "Complaint not found");
+            "The requested complaint could not be found.");
     }
 
     var employee =
@@ -438,7 +483,7 @@ public class ComplaintService : IComplaintService
 
     if (employee == null)
     {
-        throw new NotFoundException("Employee not found");
+        throw new NotFoundException("The specified employee could not be found.");
     }
 
     if (!employee.IsActive)

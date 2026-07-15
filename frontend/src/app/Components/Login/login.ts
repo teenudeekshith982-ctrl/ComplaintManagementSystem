@@ -4,10 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../Services/auth.service';
 import { ToastService } from '../../Services/toast.service';
 import { NgIf, NgClass } from '@angular/common';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
-  imports: [RouterLink, FormsModule, NgIf, NgClass],
+  imports: [RouterLink, FormsModule, NgClass],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -33,19 +34,19 @@ export class Login {
         this.toastService.success('Logged in successfully!');
 
         const user = this.authService.getUserInfo();
-        if (user?.role === 'Admin') {
+        if (user?.role === 'Admin'){
           this.router.navigate(['/admin']);
-        } else if (user?.role === 'Employee') {
+        } 
+        else if (user?.role === 'Employee') 
+        {
           this.router.navigate(['/employee']);
-        } else {
+        } 
+        else {
           this.router.navigate(['/dashboard']);
         }
       },
-      error: (error: any) => {
-        console.error('Login failed', error);
+      error: (error: HttpErrorResponse) => {
         this.loading.set(false);
-        const msg = error.error?.message || 'Invalid email or password. Please try again.';
-        this.toastService.error(msg);
       }
     });
   }

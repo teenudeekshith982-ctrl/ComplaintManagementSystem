@@ -8,14 +8,16 @@
          'toast-warning': toast.type === 'warning'
        }">
     <div class="toast-icon">
-      <span *ngIf="toast.type === 'success'">&#10003;</span>
-      <span *ngIf="toast.type === 'error'">&#9888;</span>
-      <span *ngIf="toast.type === 'info'">&#8505;</span>
-      <span *ngIf="toast.type === 'warning'">&#9888;</span>
+      <span *ngIf="toast.type === 'success'" class="material-symbols-outlined">check_circle</span>
+      <span *ngIf="toast.type === 'error'" class="material-symbols-outlined">error</span>
+      <span *ngIf="toast.type === 'info'" class="material-symbols-outlined">info</span>
+      <span *ngIf="toast.type === 'warning'" class="material-symbols-outlined">warning</span>
     </div>
     <div class="toast-message">
       {{ toast.message }}
     </div>
-    <button class="toast-close-btn" (click)="remove(toast.id)">&times;</button>
+    <button class="toast-close-btn" (click)="remove(toast.id)">
+      <span class="material-symbols-outlined">close</span>
+    </button>
   </div>
 </div>

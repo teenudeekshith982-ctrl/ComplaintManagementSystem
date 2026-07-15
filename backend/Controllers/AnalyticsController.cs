@@ -53,7 +53,7 @@ public class AnalyticsController
 
     [Authorize(Roles = "Admin")]
     [HttpGet("monthly-trend")]
-    public async Task<IActionResult> GetMonthlyTrend([FromQuery] int monthsCount = 6)
+    public async Task<IActionResult> GetMonthlyTrend([FromQuery] int monthsCount)
     {
         var result = await _analyticsService.GetMonthlyTrendAsync(monthsCount);
         return Ok(result);

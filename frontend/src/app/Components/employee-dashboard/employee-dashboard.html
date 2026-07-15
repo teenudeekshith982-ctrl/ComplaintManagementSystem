@@ -16,7 +16,7 @@
 
     <!-- Error Alert Box -->
     <div class="alert alert-danger" *ngIf="error()">
-      <span>&#9888;</span>
+      <span class="material-symbols-outlined">error</span>
       <div class="alert-content">
         <p>{{ error() }}</p>
       </div>
@@ -26,35 +26,35 @@
       <!-- Stats Cards Grid -->
       <div class="stats-grid">
         <div class="stat-card card">
-          <div class="stat-icon icon-assigned">&#128393;</div>
+          <div class="stat-icon icon-assigned"><span class="material-symbols-outlined">edit_note</span></div>
           <div class="stat-info">
             <h3>Assigned</h3>
             <span class="stat-value text-purple">{{ assignedCount() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-progress">&#128295;</div>
+          <div class="stat-icon icon-progress"><span class="material-symbols-outlined">build</span></div>
           <div class="stat-info">
             <h3>In Progress</h3>
             <span class="stat-value text-warning">{{ inProgressCount() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-resolved">&#9989;</div>
+          <div class="stat-icon icon-resolved"><span class="material-symbols-outlined">check_circle</span></div>
           <div class="stat-info">
             <h3>Resolved</h3>
             <span class="stat-value text-success">{{ resolvedCount() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-escalated">&#128680;</div>
+          <div class="stat-icon icon-escalated"><span class="material-symbols-outlined">alarm</span></div>
           <div class="stat-info">
             <h3>Escalated</h3>
             <span class="stat-value text-danger">{{ escalatedCount() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-overdue">&#9200;</div>
+          <div class="stat-icon icon-overdue"><span class="material-symbols-outlined">hourglass_empty</span></div>
           <div class="stat-info">
             <h3>Overdue (SLA)</h3>
             <span class="stat-value text-danger glow-red">{{ overdueCount() }}</span>
@@ -113,11 +113,11 @@
           <h3 class="action-title">Quick Tasks</h3>
           <div class="actions-stack">
             <button class="action-btn" (click)="viewAssigned()">
-              <span class="action-icon">&#128203;</span>
+              <span class="action-icon"><span class="material-symbols-outlined">assignment</span></span>
               View My Queue
             </button>
             <button class="action-btn" (click)="goToProfile()">
-              <span class="action-icon">&#128100;</span>
+              <span class="action-icon"><span class="material-symbols-outlined">person</span></span>
               Technician Profile
             </button>
           </div>

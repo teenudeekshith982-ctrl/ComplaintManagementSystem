@@ -7,19 +7,23 @@
       <p class="form-subtitle">Create a technician user account with auto-assigned department roles and escalation levels.</p>
 
       <!-- Alert Boxes -->
-      <div class="alert alert-danger" *ngIf="submitError()">
-        <span>&#9888;</span>
-        <div class="alert-content">
-          <p>{{ submitError() }}</p>
+      @if (submitError()) {
+        <div class="alert alert-danger">
+          <span class="material-symbols-outlined">error</span>
+          <div class="alert-content">
+            <p>{{ submitError() }}</p>
+          </div>
         </div>
-      </div>
-
-      <div class="alert alert-success" *ngIf="successMessage()">
-        <span>&#10003;</span>
-        <div class="alert-content">
-          <p>{{ successMessage() }}</p>
+      }
+      
+      @if (successMessage()) {
+        <div class="alert alert-success">
+          <span class="material-symbols-outlined">check_circle</span>
+          <div class="alert-content">
+            <p>{{ successMessage() }}</p>
+          </div>
         </div>
-      </div>
+      }
 
       <form #employeeForm="ngForm" (submit)="employeeForm.valid && submit(); $event.preventDefault()" novalidate>
         <!-- Name -->
@@ -35,9 +39,11 @@
             [ngClass]="{ 'is-invalid': nameField.invalid && (nameField.touched || employeeForm.submitted) }"
             placeholder="e.g. Alice Smith"
             required />
-          <div class="invalid-feedback" *ngIf="nameField.invalid && (nameField.touched || employeeForm.submitted)">
-            <span>Full name is required.</span>
-          </div>
+          @if (nameField.invalid && (nameField.touched || employeeForm.submitted)) {
+            <div class="invalid-feedback">
+              <span>Full name is required.</span>
+            </div>
+          }
         </div>
 
         <!-- Email -->
@@ -54,10 +60,16 @@
             placeholder="e.g. alice@company.com"
             required
             email />
-          <div class="invalid-feedback" *ngIf="emailField.invalid && (emailField.touched || employeeForm.submitted)">
-            <span *ngIf="emailField.errors?.['required']">Email address is required.</span>
-            <span *ngIf="emailField.errors?.['email']">Please enter a valid email address.</span>
-          </div>
+          @if (emailField.invalid && (emailField.touched || employeeForm.submitted)) {
+            <div class="invalid-feedback">
+              @if (emailField.hasError('required')) {
+                <span>Email address is required.</span>
+              }
+              @if (emailField.hasError('email')) {
+                <span>Please enter a valid email address.</span>
+              }
+            </div>
+          }
         </div>
 
         <!-- Password -->
@@ -74,10 +86,16 @@
             placeholder="Enter initial password"
             minlength="8"
             required />
-          <div class="invalid-feedback" *ngIf="passwordField.invalid && (passwordField.touched || employeeForm.submitted)">
-            <span *ngIf="passwordField.errors?.['required']">Password is required.</span>
-            <span *ngIf="passwordField.errors?.['minlength']">Password must be at least 8 characters long.</span>
-          </div>
+          @if (passwordField.invalid && (passwordField.touched || employeeForm.submitted)) {
+            <div class="invalid-feedback">
+              @if (passwordField.hasError('required')) {
+                <span>Password is required.</span>
+              }
+              @if (passwordField.hasError('minlength')) {
+                <span>Password must be at least 8 characters long.</span>
+              }
+            </div>
+          }
         </div>
 
         <!-- Phone -->
@@ -94,10 +112,16 @@
             placeholder="e.g. +91 9999988888"
             pattern="^\+?[0-9\s\-()]{10,20}$"
             required />
-          <div class="invalid-feedback" *ngIf="phoneField.invalid && (phoneField.touched || employeeForm.submitted)">
-            <span *ngIf="phoneField.errors?.['required']">Phone number is required.</span>
-            <span *ngIf="phoneField.errors?.['pattern']">Please enter a valid phone number (min 10 digits).</span>
-          </div>
+          @if (phoneField.invalid && (phoneField.touched || employeeForm.submitted)) {
+            <div class="invalid-feedback">
+              @if (phoneField.hasError('required')) {
+                <span>Phone number is required.</span>
+              }
+              @if (phoneField.hasError('pattern')) {
+                <span>Please enter a valid phone number (min 10 digits).</span>
+              }
+            </div>
+          }
         </div>
 
         <!-- Department -->

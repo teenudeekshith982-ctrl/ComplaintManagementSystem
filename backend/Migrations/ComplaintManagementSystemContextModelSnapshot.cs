@@ -120,8 +120,16 @@ namespace ComplaintManagementSystem.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AttachmentId"));
 
+                    b.Property<string>("BlobName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("ComplaintId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -283,6 +291,9 @@ namespace ComplaintManagementSystem.Migrations
                     b.Property<int>("ComplaintId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("CurrentAssigneeId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("EscalatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -293,11 +304,21 @@ namespace ComplaintManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("RequestedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.HasKey("EscalatedId");
 
                     b.HasIndex("ComplaintId");
 
+                    b.HasIndex("CurrentAssigneeId");
+
                     b.HasIndex("EscalatedLevelId");
+
+                    b.HasIndex("RequestedById");
 
                     b.ToTable("EscalatedComplaints");
                 });
@@ -410,6 +431,12 @@ namespace ComplaintManagementSystem.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 
@@ -510,15 +537,27 @@ namespace ComplaintManagementSystem.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ComplaintManagementSystem.Models.Employee", "CurrentAssignee")
+                        .WithMany()
+                        .HasForeignKey("CurrentAssigneeId");
+
                     b.HasOne("ComplaintManagementSystem.Models.EscalatedLevel", "EscalatedLevel")
                         .WithMany("EscalatedComplaints")
                         .HasForeignKey("EscalatedLevelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ComplaintManagementSystem.Models.Employee", "RequestedBy")
+                        .WithMany()
+                        .HasForeignKey("RequestedById");
+
                     b.Navigation("Complaint");
 
+                    b.Navigation("CurrentAssignee");
+
                     b.Navigation("EscalatedLevel");
+
+                    b.Navigation("RequestedBy");
                 });
 
             modelBuilder.Entity("ComplaintManagementSystem.Models.Notification", b =>

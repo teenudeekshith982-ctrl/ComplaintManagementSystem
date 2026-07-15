@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ComplaintManagementSystem.Middlewares;
 
@@ -28,17 +28,11 @@ public class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Unhandled exception occurred");
-
-            await HandleExceptionAsync(
-                context,
-                ex);
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static async Task HandleExceptionAsync(
+    private async Task HandleExceptionAsync(
         HttpContext context,
         Exception exception)
     {
@@ -52,38 +46,48 @@ public class GlobalExceptionMiddleware
         switch (exception)
         {   
             case UnauthorizedAccessException:
-                    response.StatusCode =  (int)HttpStatusCode.Unauthorized;
-                    response.Message = exception.Message;
-                    break;
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                response.Message = exception.Message;
+                _logger.LogWarning(exception, "Unauthorized access: {Message}", exception.Message);
+                break;
             
             case NotFoundException:
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 response.Message = exception.Message;
+                _logger.LogWarning(exception, "Resource not found: {Message}", exception.Message);
                 break;
 
             case ConflictException:
                 response.StatusCode = (int)HttpStatusCode.Conflict;
                 response.Message = exception.Message;
+                _logger.LogWarning(exception, "Conflict: {Message}", exception.Message);
                 break;
 
             case ValidationException:
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.Message = exception.Message;
+                _logger.LogWarning(exception, "Validation error: {Message}", exception.Message);
                 break;
             
             case BusinessRuleException:
-                response.StatusCode =  (int)HttpStatusCode.UnprocessableEntity;
+                response.StatusCode = (int)HttpStatusCode.UnprocessableEntity;
                 response.Message = exception.Message;
+                _logger.LogWarning(exception, "Business rule violation: {Message}", exception.Message);
                 break;
             
             case BadRequestException:
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.Message = exception.Message;
+                _logger.LogWarning(exception, "Bad request: {Message}", exception.Message);
                 break;
 
             default:
+                var correlationId = Guid.NewGuid().ToString();
+                _logger.LogError(exception, "Unhandled exception occurred. Correlation ID: {CorrelationId}", correlationId);
+                
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                response.Message = "An unexpected error occurred.";
+                response.Message = "An unexpected server error occurred. Please contact support and reference Correlation ID: " + correlationId;
+                response.CorrelationId = correlationId;
                 break;
         }
 

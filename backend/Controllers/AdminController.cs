@@ -1,6 +1,7 @@
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
 using ComplaintManagementSystem.Models.Dtos;
+using ComplaintManagementSystem.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,9 +34,17 @@ namespace ComplaintManagementSystem.Controllers
         }
 
         [HttpGet("users")]
-        public async Task<IActionResult> GetUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetUsers(
+            [FromQuery] int pageNumber = 1, 
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? excludeRole = null)
         {
             var query = _userRepository.GetQueryable();
+            if (!string.IsNullOrEmpty(excludeRole))
+            {
+                query = query.Where(u => u.Role != excludeRole);
+            }
+
             var totalRecords = await query.CountAsync();
             var users = await query
                 .OrderByDescending(u => u.JoinedDate)
@@ -68,7 +77,7 @@ namespace ComplaintManagementSystem.Controllers
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                return NotFound("User not found");
+                throw new NotFoundException("User not found");
             }
 
             bool targetState;

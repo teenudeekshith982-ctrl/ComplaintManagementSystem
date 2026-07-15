@@ -5,7 +5,7 @@
     <div class="page-header animate-fade">
       <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
       <div class="title-action-row">
-        <h2>User Account Management</h2>
+        <h2>Employee Account Management</h2>
         <button class="btn btn-primary" (click)="newEmployee()">+ Add Technician Employee</button>
       </div>
     </div>
@@ -15,15 +15,17 @@
 
     <!-- Error Alert Box -->
     <div class="alert alert-danger" *ngIf="error()">
-      <span>&#9888;</span>
+      <span class="material-symbols-outlined">error</span>
       <div class="alert-content">
         <p>{{ error() }}</p>
       </div>
     </div>
 
     <!-- Table output -->
-    <div *ngIf="!loading() && !error()">
-      <div class="table-wrapper" *ngIf="userList().length > 0; else emptyState">
+     @if(!loading() && !error()){
+      <div>
+        @if(userList().length>0){
+        <div class="table-wrapper">
         <table class="custom-table">
           <thead>
             <tr>
@@ -36,7 +38,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let u of userList()">
+            @for(u of userList();track u.userId){
+              @if(u.role !== 'User'){
+                  <tr>
               <td class="font-weight-bold">{{ u.name }}</td>
               <td class="text-secondary">{{ u.email }}</td>
               <td class="text-secondary">{{ u.phone }}</td>
@@ -59,16 +63,25 @@
                   {{ u.isActive ? 'Deactivate' : 'Activate' }}
                 </button>
               </td>
-            </tr>
+                  </tr>
+              }
+             
+            }
+           
           </tbody>
         </table>
       </div>
-
-      <ng-template #emptyState>
-        <div class="card text-center padding-xl animate-fade">
+        }
+      @else{
+         <div class="card text-center padding-xl animate-fade">
           <p class="empty-text">No user accounts found in the system.</p>
         </div>
-      </ng-template>
+      }
+
+
+      
+       
+      
 
       <!-- Pagination Footer -->
       <div class="pagination-footer" *ngIf="totalRecords() > 0">
@@ -80,5 +93,7 @@
         </div>
       </div>
     </div>
+     }
+    
   </div>
 </div>

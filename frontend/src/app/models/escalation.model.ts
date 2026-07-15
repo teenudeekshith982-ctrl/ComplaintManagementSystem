@@ -1,6 +1,5 @@
 export interface CreateEscalationRequest {
     complaintId: number;
-    escalationLevel: number;
     reason: string;
 }
 
@@ -9,15 +8,23 @@ export interface EscalationItem {
     complaintId: number;
     complaintTitle: string;
     department: string;
+    departmentId: number;
     assignedTo: string;
+    escalatedLevelId: number;
     escalationLevel: string;
+    requestedBy: string;
+    requestedById: number;
+    currentAssignee: string;
+    currentAssigneeId: number;
     reason: string;
     escalatedAt: string;
+    status: string;
 }
 
 export interface EscalationActionRequest {
     action: string;
-    comments?: string;
+    employeeId: number;
+    comments: string;
 }
 
 export interface PagedEscalationResponse {
@@ -25,4 +32,17 @@ export interface PagedEscalationResponse {
     totalRecords: number;
     pageNumber: number;
     pageSize: number;
+}
+
+export interface EligibleEmployee {
+    employeeId: number;
+    name: string;
+    designation: string;
+    departmentName: string;
+}
+
+export interface NextLevelResponse {
+    maxLevelReached: boolean;
+    nextLevel: string | null;
+    nextLevelId: number;
 }

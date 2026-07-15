@@ -12,15 +12,15 @@ namespace ComplaintManagementSystem.Controllers
     {
         private readonly IComplaintService _complaintService;
         private readonly ICommentService _commentService;
-        private readonly IWebHostEnvironment _env;
+        private readonly IFileStorageService _fileStorageService;
 
         public ComplaintsController(IComplaintService complaintService,
             ICommentService commentService,
-            IWebHostEnvironment env)
+            IFileStorageService fileStorageService)
         {
             _complaintService = complaintService;
             _commentService = commentService;
-            _env = env;
+            _fileStorageService = fileStorageService;
         }
         
         [Authorize(Roles="Admin,User")]
@@ -70,6 +70,22 @@ namespace ComplaintManagementSystem.Controllers
             return Ok(new
             {
                 Message = "Priority assigned successfully"
+            });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{id}/category")]
+        public async Task<IActionResult> AssignCategory(
+            int id,
+            [FromBody] UpdateCategoryRequestDto request)
+        {
+            await _complaintService.UpdateCategoryAsync(
+                id,
+                request);
+
+            return Ok(new
+            {
+                Message = "Category updated successfully"
             });
         }
         
@@ -162,15 +178,16 @@ namespace ComplaintManagementSystem.Controllers
         {
             var (filePath, fileName) = await _complaintService.GetAttachmentAsync(id, attachmentId);
             
-            var fullPath = Path.Combine(_env.WebRootPath, filePath);
-            if (!System.IO.File.Exists(fullPath))
+            try
             {
-                return NotFound("Physical file not found on server.");
+                var fileStream = await _fileStorageService.DownloadFileAsync(filePath);
+                var contentType = GetMimeType(fileName);
+                return File(fileStream, contentType, fileName);
             }
-
-            var contentType = GetMimeType(fileName);
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(fullPath);
-            return File(fileBytes, contentType, fileName);
+            catch (FileNotFoundException)
+            {
+                return NotFound("Attachment file not found in storage.");
+            }
         }
 
         private string GetMimeType(string fileName)

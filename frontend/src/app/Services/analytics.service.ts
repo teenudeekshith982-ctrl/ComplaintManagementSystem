@@ -1,18 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DashboardSummaryResponse } from '../models/DashboardSummaryResponse.model';
+import { ComplaintStatusAnalytics } from '../models/ComplaintStatusAnalytics.model';
+import { ComplaintCategoryAnalytics } from '../models/ComplaintCategoryAnalytics.model';
+import { MonthlyTrend } from '../models/MonthlyTrend.model';
 
-export interface DashboardSummaryResponse {
-    averageResolutionTimeHours: number;
-    slaBreachRate: number;
-    unassignedTicketsCount: number;
-    openEscalationsCount: number;
-}
 
-export interface ChartDataPoint {
-    name: string;
-    value: number;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
@@ -24,15 +18,15 @@ export class AnalyticsService {
         return this.http.get<DashboardSummaryResponse>(`${this.baseUrl}/dashboard`);
     }
 
-    getComplaintsByStatus(): Observable<Record<string, number>> {
-        return this.http.get<Record<string, number>>(`${this.baseUrl}/complaints-by-status`);
+    getComplaintsByStatus(): Observable<ComplaintStatusAnalytics[]> {
+        return this.http.get<ComplaintStatusAnalytics[]>(`${this.baseUrl}/complaints-by-status`);
     }
 
-    getComplaintsByCategory(): Observable<Record<string, number>> {
-        return this.http.get<Record<string, number>>(`${this.baseUrl}/complaints-by-category`);
+    getComplaintsByCategory(): Observable<ComplaintCategoryAnalytics[]> {
+        return this.http.get<ComplaintCategoryAnalytics[]>(`${this.baseUrl}/complaints-by-category`);
     }
 
-    getMonthlyTrend(monthsCount = 6): Observable<Record<string, number>> {
-        return this.http.get<Record<string, number>>(`${this.baseUrl}/monthly-trend?monthsCount=${monthsCount}`);
+    getMonthlyTrend(monthsCount = 4): Observable<MonthlyTrend[]> {
+        return this.http.get<MonthlyTrend[]>(`${this.baseUrl}/monthly-trend?monthsCount=${monthsCount}`);
     }
 }

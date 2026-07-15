@@ -107,8 +107,6 @@ export class ComplaintForm {
       error: (err) => {
         console.error(err);
         this.submitting.set(false);
-        const msg = err.error?.message || 'Failed to submit complaint. Please try again.';
-        this.toastService.error(msg);
       }
     });
   }

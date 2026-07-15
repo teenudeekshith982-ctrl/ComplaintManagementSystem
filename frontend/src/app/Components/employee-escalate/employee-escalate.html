@@ -3,19 +3,19 @@
 
   <div class="content-container">
     <div class="escalate-card card animate-fade">
-      <h2 class="form-title">&#9888; Escalate Complaint</h2>
-      <p class="form-subtitle">Manually escalate a difficult or SLA-endangered support ticket to supervisor level.</p>
+      <h2 class="form-title"><span class="material-symbols-outlined">warning</span> Escalate Complaint</h2>
+      <p class="form-subtitle">Submit a complaint for escalation to the next management level. The admin will review and decide.</p>
 
       <!-- Alert Boxes -->
       <div class="alert alert-danger" *ngIf="submitError()">
-        <span>&#9888;</span>
+        <span class="material-symbols-outlined">error</span>
         <div class="alert-content">
           <p>{{ submitError() }}</p>
         </div>
       </div>
 
       <div class="alert alert-success" *ngIf="successMessage()">
-        <span>&#10003;</span>
+        <span class="material-symbols-outlined">check_circle</span>
         <div class="alert-content">
           <p>{{ successMessage() }}</p>
         </div>
@@ -29,7 +29,7 @@
             name="complaintId"
             class="form-control"
             [ngModel]="complaintId()"
-            (ngModelChange)="complaintId.set($event)"
+            (ngModelChange)="onComplaintSelected($event)"
             #complaintIdField="ngModel"
             [ngClass]="{ 'is-invalid': (complaintId() === null || complaintIdField.invalid) && (complaintIdField.touched || escalateForm.submitted) }"
             required>
@@ -41,16 +41,6 @@
           <div class="invalid-feedback" *ngIf="(complaintId() === null || complaintIdField.invalid) && (complaintIdField.touched || escalateForm.submitted)">
             <span>Please select a valid ticket to escalate.</span>
           </div>
-        </div>
-
-        <!-- Escalation Level -->
-        <div class="form-group">
-          <label class="form-label">Escalation Tier</label>
-          <select name="escalationLevel" class="form-control" [ngModel]="escalationLevel()" (ngModelChange)="escalationLevel.set(+$event)">
-            <option value="1">Tier 1: Team Lead Approval</option>
-            <option value="2">Tier 2: Department Manager Review</option>
-            <option value="3">Tier 3: Executive Board Escalation</option>
-          </select>
         </div>
 
         <!-- Reason -->
@@ -76,8 +66,8 @@
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" [disabled]="submitting()" (click)="cancel()">Cancel</button>
           <button type="submit" class="btn btn-danger" [disabled]="submitting()">
-            <span *ngIf="submitting()">Submitting Escalation...</span>
-            <span *ngIf="!submitting()">Submit Escalation</span>
+            <span *ngIf="submitting()">Submitting...</span>
+            <span *ngIf="!submitting()">Submit Escalation Request</span>
           </button>
         </div>
       </form>

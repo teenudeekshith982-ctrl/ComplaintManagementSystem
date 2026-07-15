@@ -92,6 +92,69 @@ public class ComplaintServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_ShouldThrowConflictException_WhenComplaintWithSameTitleExists()
+    {
+        var request = new CreateComplaintRequestDto
+        {
+            Title = "Internet Issue",
+            Description = "Network Down",
+            Category = ComplaintCategoryEnum.Technical
+        };
+
+        _categoryRepositoryMock
+            .Setup(x => x.ExistsAsync((int)request.Category))
+            .ReturnsAsync(true);
+
+        _currentUserServiceMock
+            .Setup(x => x.GetUserId())
+            .Returns(1);
+
+        _context.Complaints.Add(new Complaint
+        {
+            ComplaintId = 101,
+            Title = "Internet Issue",
+            Description = "Already down",
+            CategoryId = (int)ComplaintCategoryEnum.Technical,
+            UserId = 1,
+            StatusId = (int)ComplaintStatusEnum.Open,
+            CreatedAt = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        Func<Task> action = () => _service.CreateAsync(request);
+
+        await action.Should()
+            .ThrowAsync<ConflictException>()
+            .WithMessage("A complaint with this title already exists.");
+    }
+
+    [Fact]
+    public async Task AssignPriorityAsync_ShouldThrowBadRequestException_WhenPriorityAlreadyAssigned()
+    {
+        var complaint = new Complaint
+        {
+            ComplaintId = 1,
+            CreatedAt = DateTime.UtcNow,
+            PriorityId = 1
+        };
+
+        _complaintRepositoryMock
+            .Setup(x => x.GetByIdAsync(1))
+            .ReturnsAsync(complaint);
+
+        var request = new AssignPriorityRequestDto
+        {
+            Priority = ComplaintPriorityEnum.High
+        };
+
+        Func<Task> action = () => _service.AssignPriorityAsync(1, request);
+
+        await action.Should()
+            .ThrowAsync<BadRequestException>()
+            .WithMessage("Priority is already assigned to this complaint.");
+    }
+
+    [Fact]
     public async Task AssignPriorityAsync_ShouldThrowNotFoundException_WhenComplaintDoesNotExist()
     {
         _complaintRepositoryMock

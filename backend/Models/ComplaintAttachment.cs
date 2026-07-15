@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ComplaintManagementSystem.Models;
 
@@ -12,6 +12,10 @@ public class ComplaintAttachment
     public string FileName { get; set; } = string.Empty;
 
     public string FilePath { get; set; } = string.Empty;
+
+    public string ContentType { get; set; } = string.Empty;
+
+    public string BlobName { get; set; } = string.Empty;
 
     public DateTime UploadedAt { get; set; }
 

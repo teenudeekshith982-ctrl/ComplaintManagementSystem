@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Contexts;
+using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
@@ -197,7 +197,16 @@ public class ComplaintRepository : IComplaintRepository
             .CountAsync(c =>
                 c.StatusId == statusId);
     }
-    
-    
-    
+
+    public async Task<List<Complaint>> GetResolvedOrClosedComplaintsAsync(int excludeId)
+    {
+        return await _context.Complaints
+            .Include(c => c.Comments)
+            .Include(c => c.ComplaintStatus)
+            .Where(c => c.ComplaintId != excludeId 
+                && (c.StatusId == (int)ComplaintStatusEnum.Resolved || c.StatusId == (int)ComplaintStatusEnum.Closed))
+            .OrderByDescending(c => c.CreatedAt)
+            .Take(50) // Limit to top 50 complaints to avoid blowing up context window
+            .ToListAsync();
+    }
 }

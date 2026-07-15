@@ -17,6 +17,10 @@ public interface IComplaintService
     public Task AssignPriorityAsync(
         int complaintId,
         AssignPriorityRequestDto request);
+
+    Task UpdateCategoryAsync(
+        int complaintId,
+        UpdateCategoryRequestDto request);
     
     public Task<AssignComplaintResponseDto>
         AssignComplaintAsync(int complaintId);

@@ -4,10 +4,11 @@ import { AuthService } from '../../Services/auth.service';
 import { ToastService } from '../../Services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { NgIf, NgClass } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
-  imports: [RouterLink, FormsModule, NgIf, NgClass],
+  imports: [RouterLink, FormsModule, NgClass],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -42,11 +43,8 @@ export class Register {
           this.router.navigate(['/login']);
         }, 1500);
       },
-      error: (error: any) => {
-        console.error('Registration failed', error);
+      error: (error: HttpErrorResponse) => {
         this.isloading.set(false);
-        const msg = error.error?.message || 'Registration failed. Please verify your details and try again.';
-        this.toastService.error(msg);
       }
     });
   }

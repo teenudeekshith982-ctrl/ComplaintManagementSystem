@@ -16,7 +16,7 @@
 
     <!-- Error Alert Box -->
     <div class="alert alert-danger" *ngIf="error()">
-      <span>&#9888;</span>
+      <span class="material-symbols-outlined">error</span>
       <div class="alert-content">
         <p>{{ error() }}</p>
       </div>
@@ -26,42 +26,42 @@
       <!-- Stats Cards Row -->
       <div class="stats-grid">
         <div class="stat-card card">
-          <div class="stat-icon icon-total">&#128203;</div>
+          <div class="stat-icon icon-total"><span class="material-symbols-outlined">assignment</span></div>
           <div class="stat-info">
             <h3>Total Filed</h3>
             <span class="stat-value">{{ totalComplaints() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-open">&#128198;</div>
+          <div class="stat-icon icon-open"><span class="material-symbols-outlined">event</span></div>
           <div class="stat-info">
             <h3>Open</h3>
             <span class="stat-value text-info">{{ openComplaints() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-assigned">&#128393;</div>
+          <div class="stat-icon icon-assigned"><span class="material-symbols-outlined">edit_note</span></div>
           <div class="stat-info">
             <h3>Assigned</h3>
             <span class="stat-value text-purple">{{ assignedComplaints() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-progress">&#128295;</div>
+          <div class="stat-icon icon-progress"><span class="material-symbols-outlined">build</span></div>
           <div class="stat-info">
             <h3>In Progress</h3>
             <span class="stat-value text-warning">{{ inProgressComplaints() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-resolved">&#9989;</div>
+          <div class="stat-icon icon-resolved"><span class="material-symbols-outlined">check_circle</span></div>
           <div class="stat-info">
             <h3>Resolved</h3>
             <span class="stat-value text-success">{{ resolvedComplaints() }}</span>
           </div>
         </div>
         <div class="stat-card card">
-          <div class="stat-icon icon-closed">&#128274;</div>
+          <div class="stat-icon icon-closed"><span class="material-symbols-outlined">lock</span></div>
           <div class="stat-info">
             <h3>Closed</h3>
             <span class="stat-value text-muted">{{ closedComplaints() }}</span>
@@ -110,15 +110,15 @@
           <h3 class="action-title">Quick Tasks</h3>
           <div class="actions-stack">
             <button class="action-btn" (click)="newComplaint()">
-              <span class="action-icon">&#10133;</span>
+              <span class="action-icon"><span class="material-symbols-outlined">add</span></span>
               File Complaint
             </button>
             <button class="action-btn" (click)="viewAllComplaints()">
-              <span class="action-icon">&#128196;</span>
+              <span class="action-icon"><span class="material-symbols-outlined">description</span></span>
               Track Status
             </button>
             <button class="action-btn" (click)="goToProfile()">
-              <span class="action-icon">&#128100;</span>
+              <span class="action-icon"><span class="material-symbols-outlined">person</span></span>
               My Profile
             </button>
           </div>

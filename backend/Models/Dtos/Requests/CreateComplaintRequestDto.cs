@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using ComplaintManagementSystem.Enums;
 
 namespace ComplaintManagementSystem.Models.Dtos;
@@ -10,7 +10,7 @@ public class CreateComplaintRequestDto
     public string Title { get; set; }
     
     [Required]
-    [MaxLength(2000)]
+    [MaxLength(10000)]
     public string Description { get; set; }
     
     [Required]

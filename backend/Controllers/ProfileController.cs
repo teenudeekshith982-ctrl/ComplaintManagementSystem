@@ -1,6 +1,7 @@
 using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models.Dtos;
+using ComplaintManagementSystem.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ namespace ComplaintManagementSystem.Controllers
 
             if (user == null)
             {
-                return NotFound("User not found.");
+                throw new NotFoundException("User not found.");
             }
 
             object employeeInfo = null;
@@ -73,14 +74,14 @@ namespace ComplaintManagementSystem.Controllers
 
             if (user == null)
             {
-                return NotFound("User not found.");
+                throw new NotFoundException("User not found.");
             }
 
             // Check if phone already exists for another user
             var existingUserWithPhone = await _userRepository.GetByPhoneAsync(request.Phone);
             if (existingUserWithPhone != null && existingUserWithPhone.UserId != userId)
             {
-                return Conflict("Phone number already in use by another user.");
+                throw new ConflictException("Phone number already in use by another user.");
             }
 
             user.Name = request.Name;
@@ -105,13 +106,13 @@ namespace ComplaintManagementSystem.Controllers
 
             if (user == null)
             {
-                return NotFound("User not found.");
+                throw new NotFoundException("User not found.");
             }
 
             var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
             if (!isPasswordValid)
             {
-                return BadRequest("Invalid current password.");
+                throw new BadRequestException("Invalid current password.");
             }
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);

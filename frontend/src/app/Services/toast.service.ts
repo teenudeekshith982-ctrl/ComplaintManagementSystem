@@ -15,6 +15,10 @@ export class ToastService {
   private nextId = 0;
 
   show(message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', duration = 4000) {
+    const isDuplicate = this.toasts().some(t => t.message === message && t.type === type);
+    if (isDuplicate) {
+      return;
+    }
     const id = this.nextId++;
     const newToast: Toast = { id, message, type, duration };
     

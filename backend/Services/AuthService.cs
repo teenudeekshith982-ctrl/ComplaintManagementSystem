@@ -36,14 +36,14 @@ public class AuthService : IAuthService
         if (existingUser != null)
         {
             _logger.LogWarning("User with email {request.Email} already exists",request.Email);
-            throw new ConflictException("Email already exists");
+            throw new ConflictException("An account with this email address already exists. Please try another email or log in.");
         }
         
         existingUser = await _userRepository.GetByPhoneAsync(request.Phone);
         if (existingUser != null)
         {   
             _logger.LogWarning("User with Phonenumber {Phonenum} already exists",request.Phone);
-            throw new ConflictException("Phone NUmber already Exists");
+            throw new ConflictException("An account with this phone number already exists. Please verify your details.");
         }
         
         var user = _mapper.Map<User>(request);

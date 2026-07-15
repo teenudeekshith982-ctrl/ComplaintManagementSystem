@@ -5,6 +5,7 @@ import { Header } from '../Header/header';
 import { AdminService } from '../../Services/admin.service';
 import { AuthService } from '../../Services/auth.service';
 import { NgIf, NgClass } from '@angular/common';
+import { ToastService } from '../../Services/toast.service';
 
 @Component({
   selector: 'app-admin-employee-form',
@@ -15,6 +16,7 @@ import { NgIf, NgClass } from '@angular/common';
 export class AdminEmployeeForm {
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
   private router = inject(Router);
 
   name = signal('');
@@ -53,6 +55,7 @@ export class AdminEmployeeForm {
       next: (res) => {
         this.submitting.set(false);
         this.successMessage.set(`Employee "${res.name}" created successfully.`);
+        this.toastService.success(`Employee "${res.name}" created successfully.`,1500);
         setTimeout(() => this.router.navigate(['/admin/employees']), 1500);
       },
       error: (err: any) => {

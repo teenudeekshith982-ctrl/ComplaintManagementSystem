@@ -5,7 +5,7 @@
     <div class="page-header animate-fade">
       <button class="btn btn-secondary btn-sm" (click)="backToDashboard()">&larr; Back to Dashboard</button>
       <div class="title-action-row">
-        <h2>Escalated Complaints Queue</h2>
+        <h2>Escalation Requests Queue</h2>
       </div>
     </div>
 
@@ -14,7 +14,7 @@
 
     <!-- Error Alert Box -->
     <div class="alert alert-danger" *ngIf="error()">
-      <span>&#9888;</span>
+      <span class="material-symbols-outlined">error</span>
       <div class="alert-content">
         <p>{{ error() }}</p>
       </div>
@@ -29,10 +29,11 @@
               <th>Ticket #</th>
               <th>Complaint Title</th>
               <th>Department</th>
-              <th>Assigned technician</th>
-              <th>Escalation Level</th>
-              <th>Escalation Reason</th>
-              <th>Date Escalated</th>
+              <th>Assignees</th>
+              <th>Level</th>
+              <th>Status</th>
+              <th>Reason</th>
+              <th>Requested</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -41,15 +42,31 @@
               <td class="font-weight-bold">#{{ e.complaintId }}</td>
               <td class="font-weight-bold">{{ e.complaintTitle }}</td>
               <td class="text-secondary">{{ e.department }}</td>
-              <td class="text-secondary">{{ e.assignedTo || 'Unassigned' }}</td>
               <td>
-                <span class="badge badge-escalated">{{ e.escalationLevel }}</span>
+                <div class="assignee-row" style="font-size: 0.85rem; margin-bottom: 2px;">
+                  <span class="text-muted">By:</span> {{ e.requestedBy || 'Unknown' }}
+                </div>
+                <div class="assignee-row" style="font-size: 0.85rem; color: var(--color-info);">
+                  <span class="text-muted">To:</span> {{ e.currentAssignee || e.assignedTo || 'Unassigned' }}
+                </div>
               </td>
-              <td class="text-secondary truncate-text" [title]="e.reason">{{ e.reason }}</td>
-              <td class="text-secondary">{{ e.escalatedAt | date:'medium' }}</td>
+              <td>
+                <span class="badge badge-escalated" style="font-size: 0.75rem;">{{ e.escalationLevel }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-pending': e.status === 'Pending',
+                  'badge-accepted': e.status === 'Accepted',
+                  'badge-rejected': e.status === 'Rejected'
+                }" style="font-size: 0.75rem;">{{ e.status }}</span>
+              </td>
+              <td class="text-secondary truncate-text" [title]="e.reason" style="max-width: 100px;">{{ e.reason }}</td>
+              <td class="text-secondary" style="font-size: 0.85rem;">{{ e.escalatedAt | date:'mediumDate' }}</td>
               <td>
                 <div class="flex-row gap-xs" (click)="$event.stopPropagation()">
-                  <button class="btn btn-danger btn-xs" (click)="openActionModal(e, 'ReassignBack')">Reassign</button>
+                  <button class="btn btn-success btn-xs" *ngIf="e.status === 'Pending'" (click)="openActionModal(e, 'Accept')">Accept</button>
+                  <button class="btn btn-danger btn-xs" *ngIf="e.status === 'Pending'" (click)="openActionModal(e, 'Reject')">Reject</button>
+                  <span class="text-muted" *ngIf="e.status !== 'Pending'" style="font-size: 0.8rem;">Actioned</span>
                 </div>
               </td>
             </tr>
@@ -59,13 +76,13 @@
 
       <ng-template #emptyState>
         <div class="card text-center padding-xl animate-fade">
-          <p class="empty-text">No active escalations found requiring resolution.</p>
+          <p class="empty-text">No escalation requests found.</p>
         </div>
       </ng-template>
 
       <!-- Pagination Footer -->
       <div class="pagination-footer" *ngIf="totalRecords() > 0">
-        <span class="records-info">Showing page {{ pageNumber() }} of {{ totalPages() }} ({{ totalRecords() }} total escalated tickets)</span>
+        <span class="records-info">Showing page {{ pageNumber() }} of {{ totalPages() }} ({{ totalRecords() }} total requests)</span>
         <div class="pagination-buttons">
           <button class="btn btn-secondary btn-sm" [disabled]="pageNumber() <= 1" (click)="prevPage()">Previous</button>
           <span class="current-page">{{ pageNumber() }}</span>
@@ -75,28 +92,79 @@
     </div>
   </div>
 
-  <!-- Resolution comments Modal Dialogue Overlay -->
+  <!-- Accept/Reject Modal -->
   <div class="modal-overlay" *ngIf="showModal()">
     <div class="modal-card animate-fade">
-      <h3 class="modal-title text-danger">
-        <span>&#8634; Reassign Escalation</span>
-      </h3>
-      <p class="modal-subtitle">
-        Ticket: <strong>#{{ activeEscalation()?.complaintId }} - {{ activeEscalation()?.complaintTitle }}</strong>
-      </p>
+      <!-- Modal Header -->
+      <div class="modal-header-row">
+        <h3 class="modal-title" [ngClass]="activeAction() === 'Accept' ? 'text-success' : 'text-danger'">
+          <span class="material-symbols-outlined modal-icon">{{ activeAction() === 'Accept' ? 'check_circle' : 'cancel' }}</span>
+          {{ activeAction() === 'Accept' ? 'Accept Escalation' : 'Reject Escalation' }}
+        </h3>
+      </div>
 
+      <!-- Complaint Info -->
+      <div class="modal-info-box">
+        <div class="info-row">
+          <span class="info-label">Ticket:</span>
+          <span class="info-value">#{{ activeEscalation()?.complaintId }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Complaint:</span>
+          <span class="info-value">{{ activeEscalation()?.complaintTitle }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Level:</span>
+          <span class="info-value badge badge-escalated">{{ activeEscalation()?.escalationLevel }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Reason:</span>
+          <span class="info-value">{{ activeEscalation()?.reason }}</span>
+        </div>
+      </div>
+
+      <!-- Action Description -->
+      <div class="modal-description" [ngClass]="activeAction() === 'Accept' ? 'desc-accept' : 'desc-reject'">
+        <span class="material-symbols-outlined">{{ activeAction() === 'Accept' ? 'trending_up' : 'swap_horiz' }}</span>
+        <span *ngIf="activeAction() === 'Accept'">Complaint will be escalated to <strong>{{ activeEscalation()?.escalationLevel }}</strong> and reassigned accordingly.</span>
+        <span *ngIf="activeAction() === 'Reject'">Complaint will be reassigned to an active employee from the same department with the same designation.</span>
+      </div>
+
+      <!-- Employee Select -->
       <div class="form-group">
-        <label class="form-label">Feedback Comments / Action Notes</label>
-        <textarea class="form-control" rows="4" 
-                  placeholder="Explain feedback/reasons for reassigning back to the technician..."
+        <label class="form-label">
+          {{ activeAction() === 'Accept' ? 'Select Target Employee' : 'Select Employee' }}
+        </label>
+        <div class="spinner-sm" *ngIf="loadingEmployees()"></div>
+        <select class="form-control" *ngIf="!loadingEmployees()"
+                [ngModel]="selectedEmployeeId()" (ngModelChange)="selectedEmployeeId.set(+$event)">
+          <option [ngValue]="0">-- Select Employee --</option>
+          <option *ngFor="let emp of eligibleEmployees()" [ngValue]="emp.employeeId">
+            {{ emp.name }} ({{ emp.designation }})
+          </option>
+        </select>
+        <p class="text-muted text-sm" *ngIf="!loadingEmployees() && eligibleEmployees().length === 0">
+          No eligible employees found for this action.
+        </p>
+      </div>
+
+      <!-- Comments -->
+      <div class="form-group">
+        <label class="form-label">Decision Comments <span class="required">*</span></label>
+        <textarea class="form-control" rows="3"
+                  [placeholder]="activeAction() === 'Accept' ? 'Explain why this escalation is being approved...' : 'Explain why this escalation is being rejected...'"
                   [ngModel]="actionComments()" (ngModelChange)="actionComments.set($event)"></textarea>
       </div>
 
+      <!-- Footer -->
       <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" [disabled]="submittingAction()" (click)="showModal.set(false)">Cancel</button>
-        <button class="btn btn-sm btn-danger" [disabled]="submittingAction() || !actionComments().trim()" 
+        <button class="btn btn-secondary" [disabled]="submittingAction()" (click)="showModal.set(false)">Cancel</button>
+        <button class="btn"
+                [ngClass]="activeAction() === 'Accept' ? 'btn-success' : 'btn-danger'"
+                [disabled]="submittingAction() || !actionComments().trim() || selectedEmployeeId() === 0"
                 (click)="submitAction()">
-          Confirm Action
+          <span class="spinner-btn" *ngIf="submittingAction()"></span>
+          {{ activeAction() === 'Accept' ? 'Confirm Accept' : 'Confirm Reject' }}
         </button>
       </div>
     </div>

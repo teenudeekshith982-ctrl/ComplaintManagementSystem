@@ -1,5 +1,6 @@
 /* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {
   /* Curated Dark Slate & Glowing Colors */
@@ -184,6 +185,15 @@ body {
   filter: brightness(1.15);
 }
 
+.btn-success {
+  background-color: var(--color-success);
+  color: #fff;
+}
+
+.btn-success:hover {
+  filter: brightness(1.15);
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -350,4 +360,13 @@ body {
     display: none !important;
   }
 }
+
+/* Material Symbols Outlined Custom Settings */
+.material-symbols-outlined {
+  font-size: inherit !important;
+  vertical-align: middle;
+  display: inline-block;
+  line-height: 1;
+}
+
 

@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Contexts;
+using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
@@ -40,7 +40,7 @@ public class CommentService : ICommentService
         if (complaint == null)
         {
             throw new NotFoundException(
-                "Complaint not found");
+                "The requested complaint could not be found.");
         }
 
         var role =
@@ -70,7 +70,7 @@ public class CommentService : ICommentService
         if (!canComment)
         {
             throw new UnauthorizedAccessException(
-                "You cannot comment on this complaint");
+                "You do not have permission to comment on this complaint.");
         }
 
         var recentDuplicate = await _context.Comments
@@ -80,7 +80,7 @@ public class CommentService : ICommentService
 
         if (recentDuplicate)
         {
-            throw new ConflictException("This comment was already submitted. Please wait before submitting again.");
+            throw new ConflictException("This comment has already been submitted. Please wait a moment before trying again.");
         }
 
         var comment = new Comment

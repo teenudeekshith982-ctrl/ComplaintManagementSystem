@@ -46,7 +46,7 @@ public class EmployeeService : IEmployeeService
                 request.Email);
 
             throw new BadRequestException(
-                "Email already exists");
+                "An account with this email address already exists. Please choose a different email address.");
         }
 
         // Validate Phone Number
@@ -57,7 +57,7 @@ public class EmployeeService : IEmployeeService
                 "Phone number {Phone} already exists",
                 request.Phone);
 
-            throw new ConflictException("Phone number already exists");
+            throw new ConflictException("An account with this phone number already exists. Please check the number and try again.");
         }
 
         // Validate Department
@@ -72,7 +72,7 @@ public class EmployeeService : IEmployeeService
                 (int)request.Department);
 
             throw new NotFoundException(
-                "Department not found");
+                "The specified department could not be found. Please select a valid department.");
         }
 
         // Create User
@@ -148,19 +148,19 @@ public class EmployeeService : IEmployeeService
         if (complaint == null)
         {
             throw new NotFoundException(
-                "Complaint not found");
+                "The requested complaint could not be found.");
         }
 
         if (complaint.PriorityId == null)
         {
             throw new BadRequestException(
-                "Priority must be assigned before assigning employee");
+                "A priority level must be assigned to the complaint before an employee can be assigned.");
         }
 
         if (complaint.EmployeeId != null)
         {
             throw new BadRequestException(
-                "Complaint already assigned");
+                "This complaint has already been assigned to an employee.");
         }
 
         var employees =
@@ -170,7 +170,7 @@ public class EmployeeService : IEmployeeService
         if (!employees.Any())
         {
             throw new NotFoundException(
-                "No active employees found");
+                "No active employees are currently available in the selected category for assignment.");
         }
 
         // Multiple least-loaded employees

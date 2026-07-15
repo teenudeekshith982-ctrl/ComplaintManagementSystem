@@ -15,9 +15,11 @@
           [ngClass]="{ 'is-invalid': fullNameField.invalid && (fullNameField.touched || registerForm.submitted) }"
           placeholder="e.g. John Doe"
           required>
-        <div class="invalid-feedback" *ngIf="fullNameField.invalid && (fullNameField.touched || registerForm.submitted)">
-          <span>Full name is required.</span>
-        </div>
+        @if(fullNameField.invalid && (fullNameField.touched || registerForm.submitted)){
+          <div class="invalid-feedback">
+            <span>Full name is required.</span>
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -32,10 +34,16 @@
           placeholder="e.g. john@example.com"
           required
           email>
-        <div class="invalid-feedback" *ngIf="emailField.invalid && (emailField.touched || registerForm.submitted)">
-          <span *ngIf="emailField.errors?.['required']">Email address is required.</span>
-          <span *ngIf="emailField.errors?.['email']">Please enter a valid email address.</span>
-        </div>
+        @if(emailField.invalid &&(emailField.touched ||  registerForm.submitted)){
+          <div class="invalid-feedback">
+            @if(emailField.errors?.['required']){
+            <span>"Email address is required.</span>
+            }
+            @if(emailField.errors?.['email']){
+            <span>"Please enter a valid email address.</span>
+            }
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -50,10 +58,16 @@
           placeholder="e.g. +91 9876543210"
           pattern="^\+?[0-9\s\-()]{10,20}$"
           required>
-        <div class="invalid-feedback" *ngIf="phoneField.invalid && (phoneField.touched || registerForm.submitted)">
-          <span *ngIf="phoneField.errors?.['required']">Phone number is required.</span>
-          <span *ngIf="phoneField.errors?.['pattern']">Please enter a valid phone number (min 10 digits).</span>
-        </div>
+        @if(phoneField.invalid || (phoneField.touched || registerForm.submitted )){
+          <div class="invalid-feedback">
+            @if(phoneField.errors?.['required']){
+            <span>Phone number is required.</span>
+            }
+            @if(phoneField.errors?.['pattern']){
+            <span>Please enter a valid phone number (min 10 digits).</span>
+            }
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -68,15 +82,24 @@
           placeholder="Choose a strong password"
           minlength="8"
           required>
-        <div class="invalid-feedback" *ngIf="passwordField.invalid && (passwordField.touched || registerForm.submitted)">
-          <span *ngIf="passwordField.errors?.['required']">Password is required.</span>
-          <span *ngIf="passwordField.errors?.['minlength']">Password must be at least 8 characters.</span>
-        </div>
+        @if(passwordField.invalid || (passwordField.touched || registerForm.submitted)){
+          <div class="invalid-feedback">
+            @if(passwordField.errors?.['required']){
+              <span>Password is required.</span>
+            }
+            @if(passwordField.errors?.['minlength']){
+              <span>Password must be at least 8 characters.</span>
+            }
+          </div>
+        }
       </div>
 
       <button [disabled]="isloading()" type="submit" class="btn btn-primary w-full">
-        <span *ngIf="isloading()">Registering...</span>
-        <span *ngIf="!isloading()">Create Account</span>
+        @if(isloading()){
+              <span>Registering...</span>
+        }@else{
+        <span>Create Account</span>
+        }
       </button>
     </form>
 

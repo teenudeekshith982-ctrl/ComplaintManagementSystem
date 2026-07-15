@@ -14,7 +14,7 @@
 
     <!-- Error Alert Box -->
     <div class="alert alert-danger" *ngIf="error()">
-      <span>&#9888;</span>
+      <span class="material-symbols-outlined">error</span>
       <div class="alert-content">
         <p>{{ error() }}</p>
       </div>
@@ -25,7 +25,7 @@
       <!-- Performance Metrics Row -->
       <div class="reports-kpi-row">
         <div class="kpi-card card">
-          <span class="kpi-icon icon-danger">&#128680;</span>
+          <span class="material-symbols-outlined kpi-icon icon-danger">alarm</span>
           <div class="kpi-details">
             <h3>SLA Breach Rate</h3>
             <span class="kpi-value text-danger">{{ dashboardSummary()?.slaBreachRate | number:'1.0-1' }}%</span>
@@ -34,7 +34,7 @@
         </div>
 
         <div class="kpi-card card">
-          <span class="kpi-icon icon-warning">&#9200;</span>
+          <span class="material-symbols-outlined kpi-icon icon-warning">hourglass_empty</span>
           <div class="kpi-details">
             <h3>Avg Resolution Time</h3>
             <span class="kpi-value text-warning">{{ dashboardSummary()?.averageResolutionTimeHours | number:'1.0-1' }}h</span>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="kpi-card card">
-          <span class="kpi-icon icon-info">&#128227;</span>
+          <span class="material-symbols-outlined kpi-icon icon-info">campaign</span>
           <div class="kpi-details">
             <h3>Escalations Queue</h3>
             <span class="kpi-value text-info">{{ dashboardSummary()?.openEscalationsCount }}</span>
@@ -52,7 +52,7 @@
         </div>
 
         <div class="kpi-card card">
-          <span class="kpi-icon icon-neutral">&#128393;</span>
+          <span class="material-symbols-outlined kpi-icon icon-neutral">edit_note</span>
           <div class="kpi-details">
             <h3>Unassigned Tickets</h3>
             <span class="kpi-value text-purple">{{ dashboardSummary()?.unassignedTicketsCount }}</span>
