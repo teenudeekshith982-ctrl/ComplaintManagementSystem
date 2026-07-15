@@ -276,6 +276,11 @@ public class ComplaintService : IComplaintService
             _logger.LogError("Complaint not found this id to update {complaintId}", complaintId);
             throw new NotFoundException("The requested complaint could not be found.");
         }
+
+        if (complaint.PriorityId.HasValue)
+        {
+            throw new BadRequestException("Priority is already assigned to this complaint.");
+        }
         
         int priorityId = (int)request.Priority;
         complaint.PriorityId =  priorityId;

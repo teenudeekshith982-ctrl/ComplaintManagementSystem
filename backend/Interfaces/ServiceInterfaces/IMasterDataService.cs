@@ -11,5 +11,6 @@ namespace ComplaintManagementSystem.Interfaces
         Task<IEnumerable<MasterDataStatusDto>> GetStatusesAsync();
         Task<IEnumerable<MasterDataDepartmentDto>> GetDepartmentsAsync();
         Task<IEnumerable<MasterDataEmployeeDto>> GetEmployeesAsync(int? departmentId);
+        Task<IEnumerable<MasterDataDesignationDto>> GetDesignationsAsync();
     }
 }

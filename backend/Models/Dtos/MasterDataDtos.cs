@@ -32,4 +32,30 @@ namespace ComplaintManagementSystem.Models.Dtos
         public string DepartmentName { get; set; } = string.Empty;
         public string Designation { get; set; } = string.Empty;
     }
+
+    public class MasterDataDesignationDto
+    {
+        public int DesignationId { get; set; }
+        public string DesignationName { get; set; } = string.Empty;
+    }
+
+    public class AdminCreateCategoryRequestDto
+    {
+        public string CategoryName { get; set; } = string.Empty;
+    }
+
+    public class AdminUpdateCategoryRequestDto
+    {
+        public string CategoryName { get; set; } = string.Empty;
+    }
+
+    public class AdminCreateDepartmentRequestDto
+    {
+        public string DepartmentName { get; set; } = string.Empty;
+    }
+
+    public class AdminUpdateDepartmentRequestDto
+    {
+        public string DepartmentName { get; set; } = string.Empty;
+    }
 }

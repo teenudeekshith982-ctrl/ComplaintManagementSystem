@@ -153,4 +153,16 @@ export class ComplaintService {
             responseType: 'blob'
         });
     }
+
+    getCategories(): Observable<{ categoryId: number; categoryName: string }[]> {
+        return this.http.get<{ categoryId: number; categoryName: string }[]>(`${this.baseUrl}/MasterData/categories`);
+    }
+
+    getDepartments(): Observable<{ departmentId: number; departmentName: string }[]> {
+        return this.http.get<{ departmentId: number; departmentName: string }[]>(`${this.baseUrl}/MasterData/departments`);
+    }
+
+    getDesignations(): Observable<{ designationId: number; designationName: string }[]> {
+        return this.http.get<{ designationId: number; designationName: string }[]>(`${this.baseUrl}/MasterData/designations`);
+    }
 }

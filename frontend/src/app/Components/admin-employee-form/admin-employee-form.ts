@@ -1,20 +1,22 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Header } from '../Header/header';
 import { AdminService } from '../../Services/admin.service';
 import { AuthService } from '../../Services/auth.service';
-import { NgIf, NgClass } from '@angular/common';
+import { ComplaintService } from '../../Services/complaint.service';
+import { NgIf, NgFor, NgClass } from '@angular/common';
 import { ToastService } from '../../Services/toast.service';
 
 @Component({
   selector: 'app-admin-employee-form',
-  imports: [Header, FormsModule, NgIf, NgClass],
+  imports: [Header, FormsModule, NgIf, NgFor, NgClass],
   templateUrl: './admin-employee-form.html',
   styleUrl: './admin-employee-form.css',
 })
-export class AdminEmployeeForm {
+export class AdminEmployeeForm implements OnInit {
   private adminService = inject(AdminService);
+  private complaintService = inject(ComplaintService);
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private router = inject(Router);
@@ -25,6 +27,8 @@ export class AdminEmployeeForm {
   phone = signal('');
   designation = signal(1);
   department = signal(1);
+  departments = signal<{ departmentId: number; departmentName: string }[]>([]);
+  designations = signal<{ designationId: number; designationName: string }[]>([]);
   submitting = signal(false);
   submitError = signal<string | null>(null);
   successMessage = signal<string | null>(null);
@@ -33,6 +37,28 @@ export class AdminEmployeeForm {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
     }
+  }
+
+  ngOnInit() {
+    this.complaintService.getDepartments().subscribe({
+      next: (data) => {
+        this.departments.set(data);
+        if (data.length > 0) {
+          this.department.set(data[0].departmentId);
+        }
+      },
+      error: (err) => console.error('Failed to load departments', err)
+    });
+
+    this.complaintService.getDesignations().subscribe({
+      next: (data) => {
+        this.designations.set(data);
+        if (data.length > 0) {
+          this.designation.set(data[0].designationId);
+        }
+      },
+      error: (err) => console.error('Failed to load designations', err)
+    });
   }
 
   submit() {

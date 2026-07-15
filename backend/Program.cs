@@ -180,4 +180,18 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ComplaintManagementSystemContext>();
+        context.Database.Migrate();
+        DbSeeder.SeedAsync(context).GetAwaiter().GetResult();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error during DB Migration/Seeding: {ex.Message}");
+    }
+}
+
 app.Run();

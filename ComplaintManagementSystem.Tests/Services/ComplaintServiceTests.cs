@@ -88,7 +88,7 @@ public class ComplaintServiceTests
 
         await action.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("Category not found.");
+            .WithMessage("The specified complaint category could not be found.");
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class ComplaintServiceTests
 
         await action.Should()
             .ThrowAsync<ConflictException>()
-            .WithMessage("A complaint with this title already exists.");
+            .WithMessage("You have recently submitted this complaint. Please wait a moment before trying to submit it again.");
     }
 
     [Fact]

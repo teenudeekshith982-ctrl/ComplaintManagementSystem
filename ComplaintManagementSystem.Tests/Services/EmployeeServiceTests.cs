@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Enums;
+using ComplaintManagementSystem.Enums;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
@@ -53,7 +53,7 @@ public class EmployeeServiceTests
 
         await action.Should()
             .ThrowAsync<BadRequestException>()
-            .WithMessage("Email already exists");
+            .WithMessage("An account with this email address already exists. Please choose a different email address.");
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class EmployeeServiceTests
 
         await action.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("Department not found");
+            .WithMessage("The specified department could not be found. Please select a valid department.");
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class EmployeeServiceTests
 
         await action.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("Complaint not found");
+            .WithMessage("The requested complaint could not be found.");
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class EmployeeServiceTests
 
         await action.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("No active employees found");
+            .WithMessage("No active employees are currently available in the selected category for assignment.");
     }
 
     [Fact]

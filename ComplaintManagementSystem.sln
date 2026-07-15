@@ -1,6 +1,6 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplaintManagementSystem", "ComplaintManagementSystem\ComplaintManagementSystem.csproj", "{ABD9C1F4-143E-4AC4-B7C4-F0360F450E9F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplaintManagementSystem", "backend\ComplaintManagementSystem.csproj", "{ABD9C1F4-143E-4AC4-B7C4-F0360F450E9F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplaintManagementSystem.Tests", "ComplaintManagementSystem.Tests\ComplaintManagementSystem.Tests.csproj", "{C9EA1D6A-2811-4943-8EEA-DDF6E809A7E0}"
 EndProject

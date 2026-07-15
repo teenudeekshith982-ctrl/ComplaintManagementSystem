@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Header } from '../Header/header';
@@ -13,7 +13,7 @@ import { NgIf, NgFor, NgClass, DecimalPipe } from '@angular/common';
   templateUrl: './complaint-form.html',
   styleUrl: './complaint-form.css',
 })
-export class ComplaintForm {
+export class ComplaintForm implements OnInit {
   private complaintService = inject(ComplaintService);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -21,7 +21,8 @@ export class ComplaintForm {
 
   title = signal('');
   description = signal('');
-  category = signal(1); // 1: Technical, 2: Billing, 3: Product, etc.
+  category = signal(1); // Default to 1
+  categories = signal<{ categoryId: number; categoryName: string }[]>([]);
   submitting = signal(false);
   
   // File Uploader state
@@ -32,6 +33,20 @@ export class ComplaintForm {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
     }
+  }
+
+  ngOnInit() {
+    this.complaintService.getCategories().subscribe({
+      next: (data) => {
+        this.categories.set(data);
+        if (data.length > 0) {
+          this.category.set(data[0].categoryId);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load categories', err);
+      }
+    });
   }
 
   onFileSelected(event: any) {

@@ -53,5 +53,12 @@ namespace ComplaintManagementSystem.Controllers
             var employees = await _masterDataService.GetEmployeesAsync(departmentId);
             return Ok(employees);
         }
+
+        [HttpGet("designations")]
+        public async Task<IActionResult> GetDesignations()
+        {
+            var designations = await _masterDataService.GetDesignationsAsync();
+            return Ok(designations);
+        }
     }
 }

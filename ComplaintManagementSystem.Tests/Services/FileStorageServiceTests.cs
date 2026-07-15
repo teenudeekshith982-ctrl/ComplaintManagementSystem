@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Exceptions;
+using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
@@ -62,7 +62,7 @@ public class FileStorageServiceTests
 
         await act.Should()
             .ThrowAsync<BusinessRuleException>()
-            .WithMessage("Empty file uploaded.");
+            .WithMessage("The uploaded file is empty. Please select a valid file with content.");
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class FileStorageServiceTests
 
         await act.Should()
             .ThrowAsync<BusinessRuleException>()
-            .WithMessage("File size cannot exceed 5 MB.");
+            .WithMessage("The selected file exceeds the maximum size limit of 5 MB. Please upload a smaller file.");
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class FileStorageServiceTests
 
         await act.Should()
             .ThrowAsync<BusinessRuleException>()
-            .WithMessage("File type .exe is not allowed.");
+            .WithMessage("The file type '.exe' is not supported. Please upload a file with one of the allowed extensions: PDF, PNG, JPG, JPEG, DOC, or DOCX.");
     }
 
     [Fact]
@@ -142,7 +142,11 @@ public class FileStorageServiceTests
             0,
             content.Length,
             "Data",
-            "test.pdf");
+            "test.pdf")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf"
+        };
 
         var files = new List<IFormFile>
         {
@@ -179,7 +183,11 @@ public class FileStorageServiceTests
                 0,
                 1,
                 "file1",
-                "test1.pdf");
+                "test1.pdf")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
 
         var file2 =
             new FormFile(
@@ -187,7 +195,11 @@ public class FileStorageServiceTests
                 0,
                 1,
                 "file2",
-                "test2.jpg");
+                "test2.jpg")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/jpeg"
+            };
 
         var files = new List<IFormFile>
         {
@@ -218,7 +230,11 @@ public class FileStorageServiceTests
                 0,
                 1,
                 "file",
-                "sample.pdf");
+                "sample.pdf")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
 
         var files = new List<IFormFile>
         {
@@ -249,7 +265,11 @@ public class FileStorageServiceTests
                 0,
                 1,
                 "file",
-                "sample.pdf");
+                "sample.pdf")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/pdf"
+            };
 
         var files = new List<IFormFile>
         {

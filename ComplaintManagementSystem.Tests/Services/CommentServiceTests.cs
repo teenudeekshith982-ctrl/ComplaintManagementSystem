@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Contexts;
+using ComplaintManagementSystem.Contexts;
 using ComplaintManagementSystem.Exceptions;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models;
@@ -65,7 +65,7 @@ public class CommentServiceTests
 
         await act.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("Complaint not found");
+            .WithMessage("The requested complaint could not be found.");
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class CommentServiceTests
 
         await act.Should()
             .ThrowAsync<UnauthorizedAccessException>()
-            .WithMessage("You cannot comment on this complaint");
+            .WithMessage("You do not have permission to comment on this complaint.");
     }
 
     [Fact]

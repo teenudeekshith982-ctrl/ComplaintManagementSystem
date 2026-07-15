@@ -76,11 +76,7 @@ export class ComplaintDetailsComponent implements OnInit {
   loadingPriorityRec = signal(false);
 
   currentCategoryId = signal<number>(0);
-  categories = [
-    { id: 1, name: 'Technical' },
-    { id: 2, name: 'Finance' },
-    { id: 3, name: 'HR' }
-  ];
+  categories: { id: number; name: string }[] = [];
 
   ngOnInit() {
     const user = this.authService.getUserInfo();
@@ -90,6 +86,7 @@ export class ComplaintDetailsComponent implements OnInit {
     }
     this.role.set(user.role);
     this.userId.set(user.userId);
+    this.loadCategories();
 
     this.route.paramMap.subscribe(params => {
       const idStr = params.get('id');
@@ -100,6 +97,17 @@ export class ComplaintDetailsComponent implements OnInit {
         if (this.role() === 'Admin' || this.role() === 'Employee') {
           this.loadComplaintEscalations();
         }
+      }
+    });
+  }
+
+  loadCategories() {
+    this.complaintService.getCategories().subscribe({
+      next: (data) => {
+        this.categories = data.map(c => ({ id: c.categoryId, name: c.categoryName }));
+      },
+      error: (err) => {
+        console.error('Failed to load categories', err);
       }
     });
   }

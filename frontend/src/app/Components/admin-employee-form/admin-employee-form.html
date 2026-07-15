@@ -128,9 +128,7 @@
         <div class="form-group">
           <label class="form-label">Department / Skill Category Alignment</label>
           <select name="department" class="form-control" [ngModel]="department()" (ngModelChange)="department.set(+$event)">
-            <option [value]="1">Technical</option>
-            <option [value]="2">Finance</option>
-            <option [value]="3">HR</option>
+            <option *ngFor="let dep of departments()" [value]="dep.departmentId">{{ dep.departmentName }}</option>
           </select>
         </div>
 
@@ -138,10 +136,7 @@
         <div class="form-group">
           <label class="form-label">Designation / Role Tier</label>
           <select name="designation" class="form-control" [ngModel]="designation()" (ngModelChange)="designation.set(+$event)">
-            <option [value]="1">Employee / Support Agent</option>
-            <option [value]="2">Team Lead / Tier 1 Esc</option>
-            <option [value]="3">Manager / Tier 2 Esc</option>
-            <option [value]="4">Senior Manager / Tier 3 Esc</option>
+            <option *ngFor="let des of designations()" [value]="des.designationId">{{ des.designationName }}</option>
           </select>
         </div>
 

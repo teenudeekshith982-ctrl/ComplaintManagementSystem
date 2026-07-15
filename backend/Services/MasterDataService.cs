@@ -87,5 +87,17 @@ namespace ComplaintManagementSystem.Services
                 })
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<MasterDataDesignationDto>> GetDesignationsAsync()
+        {
+            var designations = new List<MasterDataDesignationDto>
+            {
+                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.Employee, DesignationName = "Employee / Support Agent" },
+                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.TeamLead, DesignationName = "Team Lead / Tier 1 Esc" },
+                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.Manager, DesignationName = "Manager / Tier 2 Esc" },
+                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.SeniorManager, DesignationName = "Senior Manager / Tier 3 Esc" }
+            };
+            return await Task.FromResult(designations);
+        }
     }
 }

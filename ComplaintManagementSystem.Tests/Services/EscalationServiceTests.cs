@@ -72,7 +72,7 @@ public class EscalationServiceTests
 
         await act.Should()
             .ThrowAsync<NotFoundException>()
-            .WithMessage("Complaint not found.");
+            .WithMessage("The requested complaint could not be found.");
     }
 
     [Fact]
