@@ -34,7 +34,7 @@ public class EmployeeRepository : IEmployeeRepository
     {
         var employeeLoads = await _context.Employees
             .Include(e => e.User)
-            .Where(e => e.IsActive && e.DepartmentId == departmentId && e.Designation.ToString() == "Employee")
+            .Where(e => e.IsActive && e.DepartmentId == departmentId && e.DesignationId == (int)EmployeeDesignationEnum.Employee)
             .Select(e => new
             {
                 Employee = e,
@@ -67,7 +67,8 @@ public class EmployeeRepository : IEmployeeRepository
     {
         return _context.Employees
             .Include(e => e.User)
-            .Include(e=>e.Department)
+            .Include(e => e.Department)
+            .Include(e => e.Designation)
             .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
     }
     
@@ -83,7 +84,7 @@ public class EmployeeRepository : IEmployeeRepository
                 &&
                 e.IsActive
                 &&
-                e.Designation.ToString() == "TeamLead");
+                e.DesignationId == (int)EmployeeDesignationEnum.TeamLead);
     }
     
     public async Task<Employee?>
@@ -94,7 +95,7 @@ public class EmployeeRepository : IEmployeeRepository
             .FirstOrDefaultAsync(e =>
                 e.IsActive
                 &&
-                e.Designation.ToString() == "Manager");
+                e.DesignationId == (int)EmployeeDesignationEnum.Manager);
     }
     
     public async Task<Employee?>
@@ -105,7 +106,7 @@ public class EmployeeRepository : IEmployeeRepository
             .FirstOrDefaultAsync(e =>
                 e.IsActive
                 &&
-                e.Designation.ToString() == "SeniorManager");
+                e.DesignationId == (int)EmployeeDesignationEnum.SeniorManager);
     }
     
     public async Task<int>

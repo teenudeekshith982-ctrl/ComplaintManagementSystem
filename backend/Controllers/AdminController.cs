@@ -17,17 +17,23 @@ namespace ComplaintManagementSystem.Controllers
         private readonly IUserService _userService;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly IComplaintPriorityRepository _priorityRepository;
+        private readonly IEmployeeDesignationRepository _designationRepository;
 
         public AdminController(
             IEmployeeService employeeService, 
             IUserService userService,
             ICategoryRepository categoryRepository,
-            IDepartmentRepository departmentRepository)
+            IDepartmentRepository departmentRepository,
+            IComplaintPriorityRepository priorityRepository,
+            IEmployeeDesignationRepository designationRepository)
         {
             _employeeService = employeeService ?? throw new ArgumentNullException(nameof(employeeService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
             _departmentRepository = departmentRepository ?? throw new ArgumentNullException(nameof(departmentRepository));
+            _priorityRepository = priorityRepository ?? throw new ArgumentNullException(nameof(priorityRepository));
+            _designationRepository = designationRepository ?? throw new ArgumentNullException(nameof(designationRepository));
         }
         
         [HttpPost("employees")]
@@ -175,6 +181,130 @@ namespace ComplaintManagementSystem.Controllers
 
             await _departmentRepository.DeleteAsync(department);
             return Ok(new { Message = "Department deleted successfully." });
+        }
+
+        // Priorities CRUD
+        [HttpPost("priorities")]
+        public async Task<IActionResult> CreatePriority([FromBody] AdminCreatePriorityRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.PriorityName))
+            {
+                return BadRequest("Priority name is required.");
+            }
+
+            var priority = new ComplaintPriority
+            {
+                Priority = request.PriorityName
+            };
+
+            var created = await _priorityRepository.AddAsync(priority);
+            return CreatedAtAction(nameof(GetPriorityById), new { id = created.PriorityId }, created);
+        }
+
+        [HttpGet("priorities/{id}")]
+        public async Task<IActionResult> GetPriorityById(int id)
+        {
+            var priority = await _priorityRepository.GetByIdAsync(id);
+            if (priority == null)
+            {
+                return NotFound();
+            }
+            return Ok(priority);
+        }
+
+        [HttpPut("priorities/{id}")]
+        public async Task<IActionResult> UpdatePriority(int id, [FromBody] AdminUpdatePriorityRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.PriorityName))
+            {
+                return BadRequest("Priority name is required.");
+            }
+
+            var priority = await _priorityRepository.GetByIdAsync(id);
+            if (priority == null)
+            {
+                return NotFound();
+            }
+
+            priority.Priority = request.PriorityName;
+            await _priorityRepository.UpdateAsync(priority);
+            return Ok(priority);
+        }
+
+        [HttpDelete("priorities/{id}")]
+        public async Task<IActionResult> DeletePriority(int id)
+        {
+            var priority = await _priorityRepository.GetByIdAsync(id);
+            if (priority == null)
+            {
+                return NotFound();
+            }
+
+            await _priorityRepository.DeleteAsync(priority);
+            return Ok(new { Message = "Priority deleted successfully." });
+        }
+
+        // Designations CRUD
+        [HttpPost("designations")]
+        public async Task<IActionResult> CreateDesignation([FromBody] AdminCreateDesignationRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.DesignationName))
+            {
+                return BadRequest("Designation name is required.");
+            }
+
+            var designation = new EmployeeDesignation
+            {
+                DesignationName = request.DesignationName,
+                EscalationLevel = request.EscalationLevel
+            };
+
+            var created = await _designationRepository.AddAsync(designation);
+            return CreatedAtAction(nameof(GetDesignationById), new { id = created.DesignationId }, created);
+        }
+
+        [HttpGet("designations/{id}")]
+        public async Task<IActionResult> GetDesignationById(int id)
+        {
+            var designation = await _designationRepository.GetByIdAsync(id);
+            if (designation == null)
+            {
+                return NotFound();
+            }
+            return Ok(designation);
+        }
+
+        [HttpPut("designations/{id}")]
+        public async Task<IActionResult> UpdateDesignation(int id, [FromBody] AdminUpdateDesignationRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.DesignationName))
+            {
+                return BadRequest("Designation name is required.");
+            }
+
+            var designation = await _designationRepository.GetByIdAsync(id);
+            if (designation == null)
+            {
+                return NotFound();
+            }
+
+            designation.DesignationName = request.DesignationName;
+            designation.EscalationLevel = request.EscalationLevel;
+            await _designationRepository.UpdateAsync(designation);
+            return Ok(designation);
+        }
+
+        [HttpDelete("designations/{id}")]
+        public async Task<IActionResult> DeleteDesignation(int id)
+        {
+            var designation = await _designationRepository.GetByIdAsync(id);
+            if (designation == null)
+            {
+                return NotFound();
+            }
+
+            await _designationRepository.DeleteAsync(designation);
+            return Ok(new { Message = "Designation deleted successfully." });
         }
     }
 }

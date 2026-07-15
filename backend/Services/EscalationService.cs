@@ -423,7 +423,7 @@ public class EscalationService : IEscalationService
                     throw new BadRequestException("The specified escalation level is invalid.");
             }
 
-            if (targetEmployee.Designation != requiredDesignation)
+            if (targetEmployee.DesignationId != (int)requiredDesignation)
             {
                 throw new BadRequestException(
                     $"The selected employee must have the designation of {requiredDesignation} to be assigned at this escalation level.");
@@ -482,13 +482,13 @@ public class EscalationService : IEscalationService
         }
         else if (request.Action.Equals("Reject", StringComparison.OrdinalIgnoreCase))
         {
-            var expectedDesignation = escalation.RequestedBy?.Designation ?? EmployeeDesignationEnum.Employee;
-            if (targetEmployee.Designation != expectedDesignation)
+            var expectedDesignationId = escalation.RequestedBy?.DesignationId ?? (int)EmployeeDesignationEnum.Employee;
+            if (targetEmployee.DesignationId != expectedDesignationId)
             {
                 throw new BadRequestException("Upon rejecting the escalation, the complaint must be reassigned to an active employee belonging to the same department with the same designation.");
             }
 
-            if (expectedDesignation == EmployeeDesignationEnum.Employee || expectedDesignation == EmployeeDesignationEnum.TeamLead)
+            if (expectedDesignationId == (int)EmployeeDesignationEnum.Employee || expectedDesignationId == (int)EmployeeDesignationEnum.TeamLead)
             {
                 if (targetEmployee.DepartmentId != complaint.CategoryId)
                 {
@@ -516,7 +516,7 @@ public class EscalationService : IEscalationService
             {
                 ComplaintId = complaint.ComplaintId,
                 Action = "Escalation Rejected",
-                Details = $"Escalation rejected by {adminName}. Complaint reassigned to {targetEmployee.User?.Name} ({targetEmployee.Designation}). Comments: {request.Comments}",
+                Details = $"Escalation rejected by {adminName}. Complaint reassigned to {targetEmployee.User?.Name} ({targetEmployee.Designation?.DesignationName}). Comments: {request.Comments}",
                 ChangedBy = RolesEnum.Admin.ToString(),
                 CreatedAt = DateTime.UtcNow
             });
@@ -578,8 +578,9 @@ public class EscalationService : IEscalationService
             var query = _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Department)
+                .Include(e => e.Designation)
                 .Where(e => e.IsActive && e.User.IsActive
-                    && e.Designation == requiredDesignation);
+                    && e.DesignationId == (int)requiredDesignation);
 
             if (requiredDesignation == EmployeeDesignationEnum.Employee || requiredDesignation == EmployeeDesignationEnum.TeamLead)
             {
@@ -597,22 +598,23 @@ public class EscalationService : IEscalationService
                 {
                     EmployeeId = e.EmployeeId,
                     Name = e.User.Name,
-                    Designation = e.Designation.ToString(),
+                    Designation = e.Designation != null ? e.Designation.DesignationName : "",
                     DepartmentName = e.Department != null ? e.Department.DepartmentName : ""
                 })
                 .ToListAsync();
         }
         else if (action.Equals("Reject", StringComparison.OrdinalIgnoreCase))
         {
-            var requiredDesignation = escalation.RequestedBy?.Designation ?? EmployeeDesignationEnum.Employee;
+            var requiredDesignationId = escalation.RequestedBy?.DesignationId ?? (int)EmployeeDesignationEnum.Employee;
 
             var query = _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Department)
+                .Include(e => e.Designation)
                 .Where(e => e.IsActive && e.User.IsActive
-                    && e.Designation == requiredDesignation);
+                    && e.DesignationId == requiredDesignationId);
 
-            if (requiredDesignation == EmployeeDesignationEnum.Employee || requiredDesignation == EmployeeDesignationEnum.TeamLead)
+            if (requiredDesignationId == (int)EmployeeDesignationEnum.Employee || requiredDesignationId == (int)EmployeeDesignationEnum.TeamLead)
             {
                 query = query.Where(e => e.DepartmentId == departmentId);
             }
@@ -628,7 +630,7 @@ public class EscalationService : IEscalationService
                 {
                     EmployeeId = e.EmployeeId,
                     Name = e.User.Name,
-                    Designation = e.Designation.ToString(),
+                    Designation = e.Designation != null ? e.Designation.DesignationName : "",
                     DepartmentName = e.Department != null ? e.Department.DepartmentName : ""
                 })
                 .ToListAsync();

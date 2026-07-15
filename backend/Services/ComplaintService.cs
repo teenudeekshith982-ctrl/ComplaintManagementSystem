@@ -496,7 +496,7 @@ public class ComplaintService : IComplaintService
         throw new BadRequestException("Employee is inactive");
     }
 
-    if (employee.Designation != EmployeeDesignationEnum.Employee)
+    if (employee.DesignationId != (int)EmployeeDesignationEnum.Employee)
     {
         throw new BusinessRuleException("Complaints can only be assigned to employees with the designation 'Employee'.");
     }

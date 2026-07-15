@@ -261,7 +261,7 @@ namespace ComplaintManagementSystem.Migrations
                     b.Property<int>("DepartmentId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Designation")
+                    b.Property<int>("DesignationId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsActive")
@@ -274,10 +274,33 @@ namespace ComplaintManagementSystem.Migrations
 
                     b.HasIndex("DepartmentId");
 
+                    b.HasIndex("DesignationId");
+
                     b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("ComplaintManagementSystem.Models.EmployeeDesignation", b =>
+                {
+                    b.Property<int>("DesignationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DesignationId"));
+
+                    b.Property<string>("DesignationName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("EscalationLevel")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DesignationId");
+
+                    b.ToTable("EmployeeDesignations");
                 });
 
             modelBuilder.Entity("ComplaintManagementSystem.Models.EscalatedComplaint", b =>
@@ -518,6 +541,12 @@ namespace ComplaintManagementSystem.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ComplaintManagementSystem.Models.EmployeeDesignation", "Designation")
+                        .WithMany()
+                        .HasForeignKey("DesignationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ComplaintManagementSystem.Models.User", "User")
                         .WithOne("Employee")
                         .HasForeignKey("ComplaintManagementSystem.Models.Employee", "UserId")
@@ -525,6 +554,8 @@ namespace ComplaintManagementSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Department");
+
+                    b.Navigation("Designation");
 
                     b.Navigation("User");
                 });

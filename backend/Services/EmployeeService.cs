@@ -108,7 +108,7 @@ public class EmployeeService : IEmployeeService
 
             IsActive = true,
             
-            Designation = request.Designation,
+            DesignationId = (int)request.Designation,
         };
 
         employee =

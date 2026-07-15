@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using ComplaintManagementSystem.Enums;
 namespace ComplaintManagementSystem.Models;
 
@@ -9,7 +9,8 @@ public class Employee
     
     public int DepartmentId { get; set; }
     
-    public EmployeeDesignationEnum Designation { get; set; }
+    public int DesignationId { get; set; }
+    public EmployeeDesignation? Designation { get; set; }
     public bool IsActive { get; set; }
 
     public int UserId { get; set; }

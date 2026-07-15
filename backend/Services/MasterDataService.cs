@@ -70,7 +70,8 @@ namespace ComplaintManagementSystem.Services
             var query = _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Department)
-                .Where(e => e.IsActive && e.User.IsActive && e.Designation == EmployeeDesignationEnum.Employee);
+                .Include(e => e.Designation)
+                .Where(e => e.IsActive && e.User.IsActive && e.DesignationId == (int)EmployeeDesignationEnum.Employee);
 
             if (departmentId.HasValue)
             {
@@ -83,21 +84,20 @@ namespace ComplaintManagementSystem.Services
                     EmployeeId = e.EmployeeId,
                     EmployeeName = e.User.Name,
                     DepartmentName = e.Department != null ? e.Department.DepartmentName : string.Empty,
-                    Designation = e.Designation.ToString()
+                    Designation = e.Designation != null ? e.Designation.DesignationName : string.Empty
                 })
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MasterDataDesignationDto>> GetDesignationsAsync()
         {
-            var designations = new List<MasterDataDesignationDto>
-            {
-                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.Employee, DesignationName = "Employee / Support Agent" },
-                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.TeamLead, DesignationName = "Team Lead / Tier 1 Esc" },
-                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.Manager, DesignationName = "Manager / Tier 2 Esc" },
-                new MasterDataDesignationDto { DesignationId = (int)EmployeeDesignationEnum.SeniorManager, DesignationName = "Senior Manager / Tier 3 Esc" }
-            };
-            return await Task.FromResult(designations);
+            return await _context.EmployeeDesignations
+                .Select(d => new MasterDataDesignationDto
+                {
+                    DesignationId = d.DesignationId,
+                    DesignationName = d.DesignationName
+                })
+                .ToListAsync();
         }
     }
 }

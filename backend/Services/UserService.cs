@@ -84,6 +84,8 @@ namespace ComplaintManagementSystem.Services
             var user = await _userRepository.GetQueryable()
                 .Include(u => u.Employee)
                     .ThenInclude(e => e.Department)
+                .Include(u => u.Employee)
+                    .ThenInclude(e => e.Designation)
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null)
@@ -99,7 +101,7 @@ namespace ComplaintManagementSystem.Services
                     EmployeeId = user.Employee.EmployeeId,
                     DepartmentId = user.Employee.DepartmentId,
                     DepartmentName = user.Employee.Department?.DepartmentName ?? string.Empty,
-                    Designation = user.Employee.Designation.ToString()
+                    Designation = user.Employee.Designation?.DesignationName ?? string.Empty
                 };
             }
 

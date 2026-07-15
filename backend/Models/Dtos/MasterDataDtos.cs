@@ -58,4 +58,26 @@ namespace ComplaintManagementSystem.Models.Dtos
     {
         public string DepartmentName { get; set; } = string.Empty;
     }
+
+    public class AdminCreatePriorityRequestDto
+    {
+        public string PriorityName { get; set; } = string.Empty;
+    }
+
+    public class AdminUpdatePriorityRequestDto
+    {
+        public string PriorityName { get; set; } = string.Empty;
+    }
+
+    public class AdminCreateDesignationRequestDto
+    {
+        public string DesignationName { get; set; } = string.Empty;
+        public int? EscalationLevel { get; set; }
+    }
+
+    public class AdminUpdateDesignationRequestDto
+    {
+        public string DesignationName { get; set; } = string.Empty;
+        public int? EscalationLevel { get; set; }
+    }
 }

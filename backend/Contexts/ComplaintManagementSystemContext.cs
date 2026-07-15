@@ -47,6 +47,11 @@ public class ComplaintManagementSystemContext : DbContext
             .HasIndex(u => u.Phone)
             .IsUnique();
 
+        modelBuilder.Entity<Employee>()
+            .HasOne(e => e.Designation)
+            .WithMany()
+            .HasForeignKey(e => e.DesignationId);
+
         base.OnModelCreating(modelBuilder);
     }
     
@@ -78,4 +83,6 @@ public class ComplaintManagementSystemContext : DbContext
     public DbSet<SLA> SLAs { get; set; }
 
     public DbSet<Notification> Notifications { get; set; }
+
+    public DbSet<EmployeeDesignation> EmployeeDesignations { get; set; }
 }

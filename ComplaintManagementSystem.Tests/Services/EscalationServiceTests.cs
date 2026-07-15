@@ -107,7 +107,7 @@ public class EscalationServiceTests
         {
             EmployeeId = 1,
             IsActive = true,
-            Designation = EmployeeDesignationEnum.Employee
+            DesignationId = (int)EmployeeDesignationEnum.Employee
         };
 
         _employeeRepositoryMock
@@ -153,7 +153,7 @@ public class EscalationServiceTests
         {
             EmployeeId = 1,
             IsActive = true,
-            Designation = EmployeeDesignationEnum.Employee
+            DesignationId = (int)EmployeeDesignationEnum.Employee
         };
 
         _employeeRepositoryMock

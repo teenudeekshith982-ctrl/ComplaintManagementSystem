@@ -297,7 +297,7 @@ public class ComplaintServiceTests
         {
             EmployeeId = 10,
             IsActive = true,
-            Designation = EmployeeDesignationEnum.TeamLead,
+            DesignationId = (int)EmployeeDesignationEnum.TeamLead,
             DepartmentId = 1,
             Department = new Department { DepartmentName = "Technical" },
             User = new User { Name = "John Doe" }

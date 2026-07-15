@@ -105,6 +105,8 @@ builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IEmployeeDesignationRepository, EmployeeDesignationRepository>();
+builder.Services.AddScoped<IComplaintPriorityRepository, ComplaintPriorityRepository>();
 #endregion
 
 #region Services

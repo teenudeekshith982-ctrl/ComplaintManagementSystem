@@ -87,6 +87,21 @@ namespace ComplaintManagementSystem.Contexts
                 await context.SaveChangesAsync();
                 await context.Database.ExecuteSqlRawAsync("SELECT setval(pg_get_serial_sequence('\"SLAs\"', 'SlaId'), COALESCE(MAX(\"SlaId\"), 1)) FROM \"SLAs\";");
             }
+
+            // Seed Employee Designations
+            if (!await context.EmployeeDesignations.AnyAsync())
+            {
+                var designations = new List<EmployeeDesignation>
+                {
+                    new EmployeeDesignation { DesignationId = 1, DesignationName = "Employee / Support Agent", EscalationLevel = null },
+                    new EmployeeDesignation { DesignationId = 2, DesignationName = "Team Lead / Tier 1 Esc", EscalationLevel = 1 },
+                    new EmployeeDesignation { DesignationId = 3, DesignationName = "Manager / Tier 2 Esc", EscalationLevel = 2 },
+                    new EmployeeDesignation { DesignationId = 4, DesignationName = "Senior Manager / Tier 3 Esc", EscalationLevel = 3 }
+                };
+                await context.EmployeeDesignations.AddRangeAsync(designations);
+                await context.SaveChangesAsync();
+                await context.Database.ExecuteSqlRawAsync("SELECT setval(pg_get_serial_sequence('\"EmployeeDesignations\"', 'DesignationId'), COALESCE(MAX(\"DesignationId\"), 1)) FROM \"EmployeeDesignations\";");
+            }
         }
     }
 }
