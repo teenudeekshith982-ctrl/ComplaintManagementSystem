@@ -81,6 +81,12 @@ public class GlobalExceptionMiddleware
                 _logger.LogWarning(exception, "Bad request: {Message}", exception.Message);
                 break;
 
+            case ServiceUnavailableException:
+                response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                response.Message = exception.Message;
+                _logger.LogWarning(exception, "Service unavailable: {Message}", exception.Message);
+                break;
+            
             default:
                 var correlationId = Guid.NewGuid().ToString();
                 _logger.LogError(exception, "Unhandled exception occurred. Correlation ID: {CorrelationId}", correlationId);

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../config';
 import { Observable } from 'rxjs';
 import { AICategoryValidation, AIPriorityRecommendation, AISimilarComplaint } from '../models/ai.model';
 
@@ -8,7 +9,7 @@ import { AICategoryValidation, AIPriorityRecommendation, AISimilarComplaint } fr
 })
 export class AIService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:5048/api/ai';
+  private baseUrl = `${environment.apiBaseUrl}/api/ai`;
 
   getCategoryValidation(complaintId: number): Observable<AICategoryValidation> {
     return this.http.get<AICategoryValidation>(`${this.baseUrl}/complaints/${complaintId}/category-validation`);

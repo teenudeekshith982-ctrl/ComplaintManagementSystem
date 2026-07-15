@@ -1,10 +1,9 @@
-using ComplaintManagementSystem.Contexts;
+using System;
+using System.Threading.Tasks;
 using ComplaintManagementSystem.Interfaces;
 using ComplaintManagementSystem.Models.Dtos;
-using ComplaintManagementSystem.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ComplaintManagementSystem.Controllers
 {
@@ -14,87 +13,35 @@ namespace ComplaintManagementSystem.Controllers
     public class ProfileController : ControllerBase
     {
         private readonly ICurrentUserService _currentUserService;
-        private readonly IUserRepository _userRepository;
-        private readonly ComplaintManagementSystemContext _context;
+        private readonly IUserService _userService;
 
         public ProfileController(
             ICurrentUserService currentUserService,
-            IUserRepository userRepository,
-            ComplaintManagementSystemContext context)
+            IUserService userService)
         {
-            _currentUserService = currentUserService;
-            _userRepository = userRepository;
-            _context = context;
+            _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetProfile()
         {
             int userId = _currentUserService.GetUserId();
-
-            var user = await _context.Users
-                .Include(u => u.Employee)
-                    .ThenInclude(e => e.Department)
-                .FirstOrDefaultAsync(u => u.UserId == userId);
-
-            if (user == null)
-            {
-                throw new NotFoundException("User not found.");
-            }
-
-            object employeeInfo = null;
-            if (user.Employee != null)
-            {
-                employeeInfo = new
-                {
-                    user.Employee.EmployeeId,
-                    user.Employee.DepartmentId,
-                    DepartmentName = user.Employee.Department?.DepartmentName,
-                    Designation = user.Employee.Designation.ToString()
-                };
-            }
-
-            return Ok(new
-            {
-                user.UserId,
-                user.Name,
-                user.Email,
-                user.Phone,
-                user.Role,
-                user.JoinedDate,
-                EmployeeInfo = employeeInfo
-            });
+            var profile = await _userService.GetProfileAsync(userId);
+            return Ok(profile);
         }
 
         [HttpPut]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request)
         {
             int userId = _currentUserService.GetUserId();
-            var user = await _userRepository.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                throw new NotFoundException("User not found.");
-            }
-
-            // Check if phone already exists for another user
-            var existingUserWithPhone = await _userRepository.GetByPhoneAsync(request.Phone);
-            if (existingUserWithPhone != null && existingUserWithPhone.UserId != userId)
-            {
-                throw new ConflictException("Phone number already in use by another user.");
-            }
-
-            user.Name = request.Name;
-            user.Phone = request.Phone;
-
-            await _userRepository.UpdateAsync(user);
-
+            var updatedProfile = await _userService.UpdateProfileAsync(userId, request);
             return Ok(new
             {
                 Message = "Profile updated successfully.",
-                user.UserId,
-                user.Name,
-                user.Phone
+                updatedProfile.UserId,
+                updatedProfile.Name,
+                updatedProfile.Phone
             });
         }
 
@@ -102,22 +49,7 @@ namespace ComplaintManagementSystem.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
             int userId = _currentUserService.GetUserId();
-            var user = await _userRepository.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                throw new NotFoundException("User not found.");
-            }
-
-            var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
-            if (!isPasswordValid)
-            {
-                throw new BadRequestException("Invalid current password.");
-            }
-
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            await _userRepository.UpdateAsync(user);
-
+            await _userService.ChangePasswordAsync(userId, request);
             return Ok(new { Message = "Password changed successfully." });
         }
     }

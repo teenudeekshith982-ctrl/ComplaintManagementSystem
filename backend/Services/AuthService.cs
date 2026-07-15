@@ -94,5 +94,45 @@ public class AuthService : IAuthService
             Token = token
         };
     }
-    
+
+    public async Task<RegisterResponseDto> SetupAdmin(RegisterRequestDto request)
+    {
+        _logger.LogInformation("Attempting admin setup for {Email}", request.Email);
+
+        // Check if an admin already exists in the database
+        var anyAdminExists = _userRepository.GetQueryable().Any(u => u.Role == RolesEnum.Admin.ToString());
+        if (anyAdminExists)
+        {
+            _logger.LogWarning("Admin setup blocked: An administrator account already exists.");
+            throw new InvalidOperationException("An administrator account has already been set up in this system.");
+        }
+
+        // Verify email doesn't exist for another user
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+        {
+            throw new ConflictException("An account with this email address already exists.");
+        }
+
+        existingUser = await _userRepository.GetByPhoneAsync(request.Phone);
+        if (existingUser != null)
+        {
+            throw new ConflictException("An account with this phone number already exists.");
+        }
+
+        var user = _mapper.Map<User>(request);
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        user.JoinedDate = DateTime.UtcNow;
+        user.Role = RolesEnum.Admin.ToString(); // Set role to Admin
+        user.IsActive = true;
+
+        var result = await _userRepository.AddAsync(user);
+        _logger.LogInformation("Admin user registered successfully via adminsetup with ID: {UserId}", result.UserId);
+
+        return new RegisterResponseDto
+        {
+            UserId = result.UserId,
+            Message = "Administrator account set up successfully."
+        };
+    }
 }

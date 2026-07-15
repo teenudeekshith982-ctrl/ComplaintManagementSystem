@@ -1,10 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using ComplaintManagementSystem.Interfaces;
-using ComplaintManagementSystem.Models.Dtos.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace ComplaintManagementSystem.Controllers
 {
@@ -13,103 +11,42 @@ namespace ComplaintManagementSystem.Controllers
     [ApiController]
     public class AIController : ControllerBase
     {
-        private readonly IAIService _aiService;
-        private readonly IComplaintRepository _complaintRepository;
-        private readonly ILogger<AIController> _logger;
+        private readonly IComplaintAIService _complaintAIService;
 
-        public AIController(
-            IAIService aiService,
-            IComplaintRepository complaintRepository,
-            ILogger<AIController> logger)
+        public AIController(IComplaintAIService complaintAIService)
         {
-            _aiService = aiService;
-            _complaintRepository = complaintRepository;
-            _logger = logger;
+            _complaintAIService = complaintAIService ?? throw new ArgumentNullException(nameof(complaintAIService));
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("complaints/{id}/category-validation")]
         public async Task<IActionResult> GetCategoryValidation(int id)
         {
-            try
-            {
-                var complaint = await _complaintRepository.GetByIdAsync(id);
-                if (complaint == null) return NotFound(new { message = "Complaint not found" });
-
-                var categoryName = complaint.ComplaintCategory?.Categoryname ?? "General";
-                var result = await _aiService.ValidateCategoryAsync(complaint.Title, complaint.Description, categoryName);
-                if (result == null) return StatusCode(503, new { message = "AI validation service is currently unavailable" });
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetCategoryValidation for complaint {Id}", id);
-                return StatusCode(500, new { message = "An internal error occurred" });
-            }
+            var result = await _complaintAIService.GetCategoryValidationAsync(id);
+            return Ok(result);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("complaints/{id}/priority-recommendation")]
         public async Task<IActionResult> GetPriorityRecommendation(int id)
         {
-            try
-            {
-                var complaint = await _complaintRepository.GetByIdAsync(id);
-                if (complaint == null) return NotFound(new { message = "Complaint not found" });
-
-                var result = await _aiService.RecommendPriorityAsync(complaint.Title, complaint.Description);
-                if (result == null) return StatusCode(503, new { message = "AI recommendation service is currently unavailable" });
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetPriorityRecommendation for complaint {Id}", id);
-                return StatusCode(500, new { message = "An internal error occurred" });
-            }
+            var result = await _complaintAIService.GetPriorityRecommendationAsync(id);
+            return Ok(result);
         }
 
         [HttpGet("complaints/{id}/summary")]
         public async Task<IActionResult> GetComplaintSummary(int id)
         {
-            try
-            {
-                var complaint = await _complaintRepository.GetByIdAsync(id);
-                if (complaint == null) return NotFound(new { message = "Complaint not found" });
-
-                var summary = await _aiService.SummarizeComplaintAsync(complaint.Title, complaint.Description);
-                if (summary == null) return StatusCode(503, new { message = "AI summary service is currently unavailable" });
-
-                return Ok(new { summary });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetComplaintSummary for complaint {Id}", id);
-                return StatusCode(500, new { message = "An internal error occurred" });
-            }
+            var summary = await _complaintAIService.GetComplaintSummaryAsync(id);
+            return Ok(new { summary });
         }
 
         [Authorize(Roles = "Admin,Employee")]
         [HttpGet("complaints/{id}/similar")]
         public async Task<IActionResult> GetSimilarComplaints(int id)
         {
-            try
-            {
-                var complaint = await _complaintRepository.GetByIdAsync(id);
-                if (complaint == null) return NotFound(new { message = "Complaint not found" });
-
-                var otherComplaints = await _complaintRepository.GetResolvedOrClosedComplaintsAsync(id);
-                var result = await _aiService.FindSimilarComplaintsAsync(id, complaint.Title, complaint.Description, otherComplaints);
-                if (result == null) return StatusCode(503, new { message = "AI similarity service is currently unavailable" });
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetSimilarComplaints for complaint {Id}", id);
-                return StatusCode(500, new { message = "An internal error occurred" });
-            }
+            var result = await _complaintAIService.GetSimilarComplaintsAsync(id);
+            return Ok(result);
         }
     }
 }

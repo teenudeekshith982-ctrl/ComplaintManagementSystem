@@ -1,5 +1,6 @@
 import { Injectable, signal } from "@angular/core";
 import { HttpRequest, HttpHandlerFn, HttpEvent } from "@angular/common/http";
+import { environment } from '../config';
 import { JwtData, LoginRequest, LoginResponse, RegisterRequest } from "../models/auth.model";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
@@ -25,11 +26,11 @@ export class AuthService {
     constructor(private http: HttpClient, private router: Router) { }
 
     Login(credentials: LoginRequest) {
-        return this.http.post<LoginResponse>('http://localhost:5048/api/Auth/Login', credentials);
+        return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/api/Auth/Login`, credentials);
     }
 
     Register(credentials: RegisterRequest) {
-        return this.http.post('http://localhost:5048/api/Auth/Register', credentials);
+        return this.http.post(`${environment.apiBaseUrl}/api/Auth/Register`, credentials);
     }
 
     getToken(): string | null {

@@ -28,5 +28,11 @@ namespace ComplaintManagementSystem.Controllers
         {
             return await _authService.LoginUser(loginRequest);
         }
+
+        [HttpPost("adminsetup")]
+        public async Task<RegisterResponseDto> AdminSetup(RegisterRequestDto registerRequest)
+        {
+            return await _authService.SetupAdmin(registerRequest);
+        }
     }
 }

@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../config';
 import { ProfileData, UpdateProfileRequest, ChangePasswordRequest } from '../models/profile.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-    private baseUrl = 'http://localhost:5048/api';
+    private baseUrl = `${environment.apiBaseUrl}/api`;
 
     constructor(private http: HttpClient) {}
 

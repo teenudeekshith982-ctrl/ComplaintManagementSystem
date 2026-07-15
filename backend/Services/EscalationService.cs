@@ -542,4 +542,127 @@ public class EscalationService : IEscalationService
         return await _context.EscalatedComplaints
             .CountAsync(e => e.Status == (int)EscalationStatusEnum.Pending);
     }
+
+    public async Task<IEnumerable<EligibleEmployeeDto>> GetEligibleEmployeesAsync(int complaintId, string action)
+    {
+        var escalation = await _context.EscalatedComplaints
+            .Include(e => e.Complaint)
+            .Include(e => e.RequestedBy)
+            .FirstOrDefaultAsync(e => e.EscalatedId == complaintId);
+
+        if (escalation == null || escalation.Complaint == null)
+        {
+            throw new NotFoundException("Escalation not found.");
+        }
+
+        int departmentId = escalation.Complaint.CategoryId;
+
+        if (action.Equals("Accept", StringComparison.OrdinalIgnoreCase))
+        {
+            EmployeeDesignationEnum requiredDesignation;
+            switch ((EscalationLevelEnum)escalation.EscalatedLevelId)
+            {
+                case EscalationLevelEnum.TeamLead:
+                    requiredDesignation = EmployeeDesignationEnum.TeamLead;
+                    break;
+                case EscalationLevelEnum.Manager:
+                    requiredDesignation = EmployeeDesignationEnum.Manager;
+                    break;
+                case EscalationLevelEnum.SeniorManager:
+                    requiredDesignation = EmployeeDesignationEnum.SeniorManager;
+                    break;
+                default:
+                    throw new BadRequestException("Invalid escalation level.");
+            }
+
+            var query = _context.Employees
+                .Include(e => e.User)
+                .Include(e => e.Department)
+                .Where(e => e.IsActive && e.User.IsActive
+                    && e.Designation == requiredDesignation);
+
+            if (requiredDesignation == EmployeeDesignationEnum.Employee || requiredDesignation == EmployeeDesignationEnum.TeamLead)
+            {
+                query = query.Where(e => e.DepartmentId == departmentId);
+            }
+            else
+            {
+                var managementDept = await _context.Departments.FirstOrDefaultAsync(d => d.DepartmentName == "Management");
+                int managementDeptId = managementDept?.DepartmentId ?? 4;
+                query = query.Where(e => e.DepartmentId == managementDeptId);
+            }
+
+            return await query
+                .Select(e => new EligibleEmployeeDto
+                {
+                    EmployeeId = e.EmployeeId,
+                    Name = e.User.Name,
+                    Designation = e.Designation.ToString(),
+                    DepartmentName = e.Department != null ? e.Department.DepartmentName : ""
+                })
+                .ToListAsync();
+        }
+        else if (action.Equals("Reject", StringComparison.OrdinalIgnoreCase))
+        {
+            var requiredDesignation = escalation.RequestedBy?.Designation ?? EmployeeDesignationEnum.Employee;
+
+            var query = _context.Employees
+                .Include(e => e.User)
+                .Include(e => e.Department)
+                .Where(e => e.IsActive && e.User.IsActive
+                    && e.Designation == requiredDesignation);
+
+            if (requiredDesignation == EmployeeDesignationEnum.Employee || requiredDesignation == EmployeeDesignationEnum.TeamLead)
+            {
+                query = query.Where(e => e.DepartmentId == departmentId);
+            }
+            else
+            {
+                var managementDept = await _context.Departments.FirstOrDefaultAsync(d => d.DepartmentName == "Management");
+                int managementDeptId = managementDept?.DepartmentId ?? 4;
+                query = query.Where(e => e.DepartmentId == managementDeptId);
+            }
+
+            return await query
+                .Select(e => new EligibleEmployeeDto
+                {
+                    EmployeeId = e.EmployeeId,
+                    Name = e.User.Name,
+                    Designation = e.Designation.ToString(),
+                    DepartmentName = e.Department != null ? e.Department.DepartmentName : ""
+                })
+                .ToListAsync();
+        }
+
+        throw new BadRequestException("Invalid action. Must be 'Accept' or 'Reject'.");
+    }
+
+    public async Task<NextLevelResponseDto> GetNextEscalationLevelAsync(int complaintId)
+    {
+        var complaint = await _context.Complaints
+            .FirstOrDefaultAsync(c => c.ComplaintId == complaintId);
+
+        if (complaint == null)
+        {
+            throw new NotFoundException("Complaint not found.");
+        }
+
+        var existingEscalations = await _context.EscalatedComplaints
+            .Where(e => e.ComplaintId == complaintId)
+            .ToListAsync();
+
+        int nextLevelId = existingEscalations.Count + 1;
+
+        if (nextLevelId > (int)EscalationLevelEnum.SeniorManager)
+        {
+            return new NextLevelResponseDto { MaxLevelReached = true, NextLevel = null, NextLevelId = 0 };
+        }
+
+        var levelName = await _context.EscalatedLevels
+            .Where(l => l.EscalatedLevelId == nextLevelId)
+            .Select(l => l.LevelName)
+            .FirstOrDefaultAsync();
+
+        return new NextLevelResponseDto { MaxLevelReached = false, NextLevel = levelName, NextLevelId = nextLevelId };
+    }
 }

@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../config';
 import { CreateEscalationRequest, EscalationItem, EscalationActionRequest, PagedEscalationResponse, EligibleEmployee, NextLevelResponse } from '../models/escalation.model';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class EscalationService {
-    private baseUrl = 'http://localhost:5048/api';
+    private baseUrl = `${environment.apiBaseUrl}/api`;
 
     constructor(private http: HttpClient) {}
 

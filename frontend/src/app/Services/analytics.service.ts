@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../config';
 import { Observable } from 'rxjs';
 import { DashboardSummaryResponse } from '../models/DashboardSummaryResponse.model';
 import { ComplaintStatusAnalytics } from '../models/ComplaintStatusAnalytics.model';
@@ -10,7 +11,7 @@ import { MonthlyTrend } from '../models/MonthlyTrend.model';
 
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
-    private baseUrl = 'http://localhost:5048/api/Analytics';
+    private baseUrl = `${environment.apiBaseUrl}/api/Analytics`;
 
     constructor(private http: HttpClient) {}
 

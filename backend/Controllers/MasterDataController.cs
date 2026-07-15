@@ -1,8 +1,8 @@
-using ComplaintManagementSystem.Contexts;
-using ComplaintManagementSystem.Enums;
+using System;
+using System.Threading.Tasks;
+using ComplaintManagementSystem.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ComplaintManagementSystem.Controllers
 {
@@ -11,68 +11,38 @@ namespace ComplaintManagementSystem.Controllers
     [ApiController]
     public class MasterDataController : ControllerBase
     {
-        private readonly ComplaintManagementSystemContext _context;
+        private readonly IMasterDataService _masterDataService;
 
-        public MasterDataController(ComplaintManagementSystemContext context)
+        public MasterDataController(IMasterDataService masterDataService)
         {
-            _context = context;
+            _masterDataService = masterDataService ?? throw new ArgumentNullException(nameof(masterDataService));
         }
 
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories()
         {
-            var categories = await _context.ComplaintCategories
-                .Select(c => new
-                {
-                    c.CategoryId,
-                    CategoryName = c.Categoryname
-                })
-                .ToListAsync();
-
+            var categories = await _masterDataService.GetCategoriesAsync();
             return Ok(categories);
         }
 
         [HttpGet("priorities")]
         public async Task<IActionResult> GetPriorities()
         {
-            var priorities = await _context.ComplaintPriorities
-                .Include(p => p.SLA)
-                .Select(p => new
-                {
-                    p.PriorityId,
-                    PriorityName = p.Priority,
-                    SlaResolutionHours = p.SLA != null ? p.SLA.ResolutionHours : 0
-                })
-                .ToListAsync();
-
+            var priorities = await _masterDataService.GetPrioritiesAsync();
             return Ok(priorities);
         }
 
         [HttpGet("statuses")]
         public async Task<IActionResult> GetStatuses()
         {
-            var statuses = await _context.ComplaintStatuses
-                .Select(s => new
-                {
-                    s.StatusId,
-                    s.StatusName
-                })
-                .ToListAsync();
-
+            var statuses = await _masterDataService.GetStatusesAsync();
             return Ok(statuses);
         }
 
         [HttpGet("departments")]
         public async Task<IActionResult> GetDepartments()
         {
-            var departments = await _context.Departments
-                .Select(d => new
-                {
-                    d.DepartmentId,
-                    d.DepartmentName
-                })
-                .ToListAsync();
-
+            var departments = await _masterDataService.GetDepartmentsAsync();
             return Ok(departments);
         }
 
@@ -80,26 +50,7 @@ namespace ComplaintManagementSystem.Controllers
         [HttpGet("employees")]
         public async Task<IActionResult> GetEmployees([FromQuery] int? departmentId)
         {
-            var query = _context.Employees
-                .Include(e => e.User)
-                .Include(e => e.Department)
-                .Where(e => e.IsActive && e.User.IsActive && e.Designation == EmployeeDesignationEnum.Employee);
-
-            if (departmentId.HasValue)
-            {
-                query = query.Where(e => e.DepartmentId == departmentId.Value);
-            }
-
-            var employees = await query
-                .Select(e => new
-                {
-                    e.EmployeeId,
-                    EmployeeName = e.User.Name,
-                    DepartmentName = e.Department.DepartmentName,
-                    Designation = e.Designation.ToString()
-                })
-                .ToListAsync();
-
+            var employees = await _masterDataService.GetEmployeesAsync(departmentId);
             return Ok(employees);
         }
     }

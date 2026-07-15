@@ -15,4 +15,8 @@ public interface IEscalationService
     Task ResolveEscalationAsync(int escalatedId, EscalationActionRequestDto request);
 
     Task<int> GetPendingEscalationCountAsync();
+
+    Task<IEnumerable<EligibleEmployeeDto>> GetEligibleEmployeesAsync(int complaintId, string action);
+
+    Task<NextLevelResponseDto> GetNextEscalationLevelAsync(int complaintId);
 }

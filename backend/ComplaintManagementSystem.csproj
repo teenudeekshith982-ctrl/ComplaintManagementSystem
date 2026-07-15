@@ -35,8 +35,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <_ContentIncludedByDefault Remove="Models\obj\Models.csproj.nuget.dgspec.json" />
-      <_ContentIncludedByDefault Remove="Models\obj\project.assets.json" />
+      <Content Remove="Models\bin\**" />
+      <Content Remove="Models\obj\**" />
     </ItemGroup>
 
 </Project>

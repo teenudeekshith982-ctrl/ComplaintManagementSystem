@@ -20,12 +20,14 @@ var builder = WebApplication.CreateBuilder(args);
 var vaultUri = builder.Configuration["AzureKeyVault:VaultUri"];
 if (!string.IsNullOrEmpty(vaultUri) && vaultUri != "https://YOUR_KEY_VAULT_NAME.vault.azure.net/")
 {
+    Console.WriteLine($"DEBUG: Attempting to connect to Key Vault at: {vaultUri}");
     builder.Configuration.AddAzureKeyVault(
         new Uri(vaultUri), 
         new DefaultAzureCredential());
 }
 
-
+Console.WriteLine($"DEBUG: ConnectionStrings:Default is: '{builder.Configuration.GetConnectionString("Default")}'");
+Console.WriteLine($"DEBUG: AI:GroqApiKey is: '{builder.Configuration["AI:GroqApiKey"]}'");
 
 builder.Services.AddControllers();
 
@@ -146,6 +148,9 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IMasterDataService, MasterDataService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IComplaintAIService, ComplaintAIService>();
 builder.Services.AddHostedService<AutoEscalationBackgroundService>();
 #endregion
 

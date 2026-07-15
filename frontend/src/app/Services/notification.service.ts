@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../config';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs';
@@ -25,8 +26,8 @@ export interface PagedNotificationsResponse {
 export class NotificationService {
     private http = inject(HttpClient);
     private authService = inject(AuthService);
-    private baseUrl = 'http://localhost:5048/api/Notifications';
-    private hubUrl = 'http://localhost:5048/hubs/notifications';
+    private baseUrl = `${environment.apiBaseUrl}/api/Notifications`;
+    private hubUrl = `${environment.apiBaseUrl}/hubs/notifications`;
 
     private hubConnection: HubConnection | null = null;
 
