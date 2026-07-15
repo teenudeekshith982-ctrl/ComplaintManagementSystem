@@ -1,0 +1,50 @@
+# =========================================================================
+# dotnet (C# / ASP.NET Core) Git Ignore Rules
+# =========================================================================
+
+# Build folders
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+publish.zip
+
+# IDE/User Settings
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.sln.DotSettings.user
+.artifacts/
+
+# =========================================================================
+# Angular / Node.js Git Ignore Rules
+# =========================================================================
+
+# Dependency directory
+node_modules/
+
+# Local Angular cache and build output directories
+.angular/
+dist/
+tmp/
+out-tsc/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment local overrides (contains API keys/secrets)
+.env
+.env.local
+.env.*.local
+
+# =========================================================================
+# System/Misc Rules
+# =========================================================================
+Thumbs.db
+desktop.ini
+.DS_Store
