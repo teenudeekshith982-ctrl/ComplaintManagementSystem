@@ -1,4 +1,4 @@
-﻿using ComplaintManagementSystem.Enums;
+using ComplaintManagementSystem.Enums;
 
 namespace ComplaintManagementSystem.Models;
 
@@ -46,4 +46,6 @@ public class Complaint
     public ICollection<ComplaintHistory>? ComplaintHistories { get; set; }
 
     public ICollection<EscalatedComplaint>? EscalatedComplaints { get; set; }
+
+    public Feedback? Feedback { get; set; }
 }

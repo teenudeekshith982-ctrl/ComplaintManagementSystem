@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../config';
-import { ComplaintDetails, CommentRequest, PagedUserComplaintsResponse, PagedAdminComplaintsResponse } from '../models/complaint.model';
+import { ComplaintDetails, CommentRequest, PagedUserComplaintsResponse, PagedAdminComplaintsResponse, FeedbackRequest } from '../models/complaint.model';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -164,5 +164,9 @@ export class ComplaintService {
 
     getDesignations(): Observable<{ designationId: number; designationName: string }[]> {
         return this.http.get<{ designationId: number; designationName: string }[]>(`${this.baseUrl}/MasterData/designations`);
+    }
+
+    submitFeedback(complaintId: number, data: FeedbackRequest): Observable<any> {
+        return this.http.post(`${this.baseUrl}/Complaints/${complaintId}/feedback`, data);
     }
 }

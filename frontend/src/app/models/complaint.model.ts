@@ -31,6 +31,18 @@ export interface ComplaintDetails {
     assignedEmployeeId?: number;
     categoryId: number;
     categoryName: string;
+    feedback?: FeedbackResponse;
+}
+
+export interface FeedbackResponse {
+    rating: number;
+    comments?: string;
+    submittedAt: string;
+}
+
+export interface FeedbackRequest {
+    rating: number;
+    comments?: string;
 }
 
 export interface AttachmentDto {

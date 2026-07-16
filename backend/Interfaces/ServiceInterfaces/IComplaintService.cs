@@ -39,4 +39,6 @@ public interface IComplaintService
     Task<ComplaintDetailsDto> GetComplaintDetailsById(int ComplaintId);
     
     Task<(string FilePath, string FileName)> GetAttachmentAsync(int complaintId, int attachmentId);
+
+    Task<FeedbackResponseDto> SubmitFeedbackAsync(int complaintId, FeedbackRequestDto request);
 }

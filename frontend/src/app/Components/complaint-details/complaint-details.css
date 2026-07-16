@@ -360,6 +360,42 @@
   color: #fbbf24;
 }
 
+/* Feedback Card Styles */
+.feedback-card {
+  margin-bottom: 1.5rem;
+}
+.stars-display {
+  display: flex;
+  gap: 0.25rem;
+  color: var(--border-color);
+  margin-bottom: 0.5rem;
+}
+.stars-display .material-symbols-outlined.filled {
+  color: #f59e0b; /* Amber 500 */
+  font-variation-settings: 'FILL' 1;
+}
+.rating-input .star-btn {
+  transition: color 0.2s, transform 0.2s;
+}
+.rating-input .star-btn:hover {
+  transform: scale(1.1);
+}
+.rating-input .star-btn.filled {
+  color: #f59e0b;
+  font-variation-settings: 'FILL' 1;
+}
+.feedback-submitted {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+.feedback-comment {
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
 .modal-icon {
   font-size: 1.5rem !important;
 }

@@ -344,6 +344,48 @@
           </div>
         </div>
 
+        <!-- Feedback Card -->
+        <div class="card feedback-card" *ngIf="complaint()?.status === 'Resolved' || complaint()?.status === 'Closed'">
+          <h3 class="section-title">Customer Feedback</h3>
+          
+          <div *ngIf="complaint()?.feedback; else leaveFeedback">
+            <div class="feedback-submitted">
+              <div class="stars-display">
+                <span class="material-symbols-outlined" *ngFor="let star of [1, 2, 3, 4, 5]" [class.filled]="star <= (complaint()?.feedback?.rating || 0)">star</span>
+              </div>
+              <p class="feedback-comment" *ngIf="complaint()?.feedback?.comments">"{{ complaint()?.feedback?.comments }}"</p>
+              <small class="text-muted">Submitted on: {{ complaint()?.feedback?.submittedAt | date:'short' }}</small>
+            </div>
+          </div>
+
+          <ng-template #leaveFeedback>
+            <div *ngIf="role() === 'User'; else waitingForUser">
+              <p class="text-sm text-secondary" style="margin-bottom: 0.5rem;">Please rate your experience with the resolution of this complaint.</p>
+              
+              <div class="rating-input" style="display: flex; gap: 0.25rem; font-size: 2rem; color: var(--border-color); cursor: pointer; margin-bottom: 1rem;">
+                <span class="material-symbols-outlined star-btn" 
+                      *ngFor="let star of [1, 2, 3, 4, 5]"
+                      (click)="setRating(star)"
+                      (mouseenter)="hoveredRating.set(star)"
+                      (mouseleave)="hoveredRating.set(0)"
+                      [class.filled]="star <= (hoveredRating() || feedbackRating())">
+                  star
+                </span>
+              </div>
+
+              <div class="form-group mt-sm">
+                <textarea class="form-control" rows="2" placeholder="Any additional comments? (Optional)" [ngModel]="feedbackComments()" (ngModelChange)="feedbackComments.set($event)"></textarea>
+              </div>
+
+              <button class="btn btn-primary mt-sm w-full" [disabled]="submittingAction() || feedbackRating() === 0" (click)="submitFeedback()">Submit Feedback</button>
+            </div>
+            
+            <ng-template #waitingForUser>
+              <p class="empty-text">Awaiting customer feedback.</p>
+            </ng-template>
+          </ng-template>
+        </div>
+
         <!-- Comments Card -->
         <div class="card comments-card">
           <h3 class="section-title">Communication Log</h3>

@@ -156,6 +156,14 @@ namespace ComplaintManagementSystem.Controllers
             return Ok(result);
         }
         
+        [Authorize(Roles = "User")]
+        [HttpPost("{id}/feedback")]
+        public async Task<IActionResult> AddFeedback(int id, [FromBody] FeedbackRequestDto request)
+        {
+            var result = await _complaintService.SubmitFeedbackAsync(id, request);
+            return Ok(result);
+        }
+
         [Authorize]
         [HttpPost("{id}/comments")]
         public async Task<IActionResult>

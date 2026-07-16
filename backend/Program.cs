@@ -31,7 +31,7 @@ Console.WriteLine($"DEBUG: AI:GroqApiKey is: '{builder.Configuration["AI:GroqApi
 
 builder.Services.AddControllers();
 
-builder.Services.AddOpenApi();
+
 builder.Services.AddSwaggerGen();
 builder.Services.AddEndpointsApiExplorer();
 

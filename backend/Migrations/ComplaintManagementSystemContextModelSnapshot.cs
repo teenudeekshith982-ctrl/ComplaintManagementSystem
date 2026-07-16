@@ -17,7 +17,7 @@ namespace ComplaintManagementSystem.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -363,6 +363,34 @@ namespace ComplaintManagementSystem.Migrations
                     b.ToTable("EscalatedLevels");
                 });
 
+            modelBuilder.Entity("ComplaintManagementSystem.Models.Feedback", b =>
+                {
+                    b.Property<int>("FeedbackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("FeedbackId"));
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ComplaintId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("FeedbackId");
+
+                    b.HasIndex("ComplaintId")
+                        .IsUnique();
+
+                    b.ToTable("Feedbacks");
+                });
+
             modelBuilder.Entity("ComplaintManagementSystem.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -591,6 +619,17 @@ namespace ComplaintManagementSystem.Migrations
                     b.Navigation("RequestedBy");
                 });
 
+            modelBuilder.Entity("ComplaintManagementSystem.Models.Feedback", b =>
+                {
+                    b.HasOne("ComplaintManagementSystem.Models.Complaint", "Complaint")
+                        .WithOne("Feedback")
+                        .HasForeignKey("ComplaintManagementSystem.Models.Feedback", "ComplaintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Complaint");
+                });
+
             modelBuilder.Entity("ComplaintManagementSystem.Models.Notification", b =>
                 {
                     b.HasOne("ComplaintManagementSystem.Models.Complaint", "RelatedComplaint")
@@ -629,6 +668,8 @@ namespace ComplaintManagementSystem.Migrations
                     b.Navigation("ComplaintHistories");
 
                     b.Navigation("EscalatedComplaints");
+
+                    b.Navigation("Feedback");
                 });
 
             modelBuilder.Entity("ComplaintManagementSystem.Models.ComplaintCategory", b =>

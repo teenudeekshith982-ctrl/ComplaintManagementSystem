@@ -890,7 +890,14 @@ public class ComplaintService : IComplaintService
 
             CategoryId = complaint.CategoryId,
 
-            CategoryName = ((ComplaintCategoryEnum)complaint.CategoryId).ToString()
+            CategoryName = ((ComplaintCategoryEnum)complaint.CategoryId).ToString(),
+
+            Feedback = complaint.Feedback != null ? new FeedbackResponseDto
+            {
+                Rating = complaint.Feedback.Rating,
+                Comments = complaint.Feedback.Comments,
+                SubmittedAt = complaint.Feedback.SubmittedAt
+            } : null
         };
     }
 
@@ -930,5 +937,52 @@ public class ComplaintService : IComplaintService
         }
 
         return (attachment.FilePath, attachment.FileName);
+    }
+
+    public async Task<FeedbackResponseDto> SubmitFeedbackAsync(int complaintId, FeedbackRequestDto request)
+    {
+        var complaint = await _complaintRepository.GetByIdAsync(complaintId);
+        if (complaint == null)
+        {
+            throw new NotFoundException("Complaint not found.");
+        }
+
+        if (complaint.UserId != _currentUserService.GetUserId())
+        {
+            throw new UnauthorizedAccessException("You do not have permission to submit feedback for this complaint.");
+        }
+
+        if (complaint.StatusId != (int)ComplaintStatusEnum.Resolved && complaint.StatusId != (int)ComplaintStatusEnum.Closed)
+        {
+            throw new BadRequestException("Feedback can only be submitted for resolved or closed complaints.");
+        }
+
+        if (complaint.Feedback != null)
+        {
+            throw new ConflictException("Feedback has already been submitted for this complaint.");
+        }
+
+        if (request.Rating < 1 || request.Rating > 5)
+        {
+            throw new BadRequestException("Rating must be between 1 and 5 stars.");
+        }
+
+        var feedback = new Feedback
+        {
+            ComplaintId = complaintId,
+            Rating = request.Rating,
+            Comments = request.Comments,
+            SubmittedAt = DateTime.UtcNow
+        };
+
+        _context.Feedbacks.Add(feedback);
+        await _context.SaveChangesAsync();
+
+        return new FeedbackResponseDto
+        {
+            Rating = feedback.Rating,
+            Comments = feedback.Comments,
+            SubmittedAt = feedback.SubmittedAt
+        };
     }
 }

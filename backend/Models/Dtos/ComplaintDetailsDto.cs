@@ -19,4 +19,7 @@ public class ComplaintDetailsDto
     public int? AssignedEmployeeId { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; }
+    public string? ResolutionComments { get; set; }
+
+    public FeedbackResponseDto? Feedback { get; set; }
 }

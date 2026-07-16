@@ -61,6 +61,10 @@ export class ComplaintDetailsComponent implements OnInit {
   eligibleEmployees = signal<EligibleEmployee[]>([]);
   loadingEligibleEmployees = signal(false);
 
+  feedbackRating = signal<number>(0);
+  hoveredRating = signal<number>(0);
+  feedbackComments = signal<string>('');
+
   private aiService = inject(AIService);
 
   aiSummary = signal<string | null>(null);
@@ -519,5 +523,32 @@ export class ComplaintDetailsComponent implements OnInit {
     if (this.role() === 'Admin') this.router.navigate(['/admin/complaints']);
     else if (this.role() === 'Employee') this.router.navigate(['/employee/complaints']);
     else this.router.navigate(['/complaints']);
+  }
+
+  setRating(rating: number) {
+    this.feedbackRating.set(rating);
+  }
+
+  submitFeedback() {
+    const rating = this.feedbackRating();
+    if (rating < 1 || rating > 5) {
+      this.toastService.error('Please select a star rating.');
+      return;
+    }
+
+    this.submittingAction.set(true);
+    this.complaintService.submitFeedback(this.complaintId, {
+      rating: rating,
+      comments: this.feedbackComments()
+    }).subscribe({
+      next: (res) => {
+        this.submittingAction.set(false);
+        this.toastService.success('Thank you! Your feedback has been submitted.');
+        this.loadDetails(); // Reload to show the feedback
+      },
+      error: (err) => {
+        this.submittingAction.set(false);
+      }
+    });
   }
 }

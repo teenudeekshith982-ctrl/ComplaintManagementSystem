@@ -27,6 +27,11 @@ public class ComplaintManagementSystemContext : DbContext
             .WithMany(cc => cc.Complaints)
             .HasForeignKey(c => c.CategoryId);
 
+        modelBuilder.Entity<Complaint>()
+            .HasOne(c => c.Feedback)
+            .WithOne(f => f.Complaint)
+            .HasForeignKey<Feedback>(f => f.ComplaintId);
+
         modelBuilder.Entity<Notification>()
             .HasOne(n => n.User)
             .WithMany()
@@ -85,4 +90,6 @@ public class ComplaintManagementSystemContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
 
     public DbSet<EmployeeDesignation> EmployeeDesignations { get; set; }
+
+    public DbSet<Feedback> Feedbacks { get; set; }
 }

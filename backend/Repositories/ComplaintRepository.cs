@@ -151,6 +151,7 @@ public class ComplaintRepository : IComplaintRepository
             .Include(c => c.Comments)
             .Include(c => c.ComplaintAttachments)
             .Include(c => c.ComplaintCategory)
+            .Include(c => c.Feedback)
             .FirstOrDefaultAsync(c => c.ComplaintId == complaintId);
 
         return complaint;
