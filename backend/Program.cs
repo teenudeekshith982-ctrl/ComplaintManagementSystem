@@ -168,19 +168,20 @@ builder.Services.AddAutoMapper(
 var app = builder.Build();
 
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseCors("AngularPolicy");
 app.UseMiddleware < GlobalExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpsRedirection();
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapGet("/version", () => "Deployment 15-Jul-2026 10:30 PM");
 
 using (var scope = app.Services.CreateScope())
 {
